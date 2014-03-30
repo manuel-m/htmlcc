@@ -453,7 +453,25 @@ int br_http_server_init(br_http_server_t* srv_, int port_, void* gen_response_cb
     MM_ASSERT(0 == uv_ip4_addr("0.0.0.0", srv_->m_port, &srv_->m_addr));
     MM_ASSERT(0 == uv_tcp_bind(&srv_->m_handler, (const struct sockaddr*) &srv_->m_addr));
     MM_ASSERT(0 == uv_listen((uv_stream_t*) & srv_->m_handler, BR_MAX_CONNECTIONS, on_http_connect));
+    
+    srv_->m_resources = hashmap_new();
+    
     return 0;
+}
+
+int br_http_server_resource_add(br_http_server_t* srv_, const char* key_,
+        const char* data_, size_t size_) {
+
+    br_http_resource_t* rsr = malloc(sizeof (br_http_resource_t));
+    if (!rsr) MM_GERR("resource container allocation");
+    rsr->m_data = data_;
+    rsr->m_len = size_;
+
+    if (MAP_OK != hashmap_put(srv_->m_resources, key_, rsr)) MM_GERR("resource add: %d",key_);
+    return 0;
+
+err:
+    return -1;
 }
 
 /**
