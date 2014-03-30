@@ -2,7 +2,7 @@
 #include <string.h>
 #include <ctype.h>
 #include <time.h>
-#include "bagride.h"
+#include "bagride2.h"
 #include "sub0.h"
 #include "mmtrace.h"
 
@@ -195,7 +195,7 @@ static void on_in_server_connect(uv_stream_t* server_handle_, int status_) {
 
     uv_tcp_init(uv_default_loop(), pclient);
     pclient->data = client_pool_item;
-    
+
     int r = uv_accept(server_handle_, (uv_stream_t*) pclient);
 
     if (0 == r) {
@@ -217,11 +217,11 @@ int br_udp_server_init(br_udp_server_t* srv_, int port_, void* user_parse_cb_) {
     srv_->m_port = port_;
     srv_->m_user_parse_cb = user_parse_cb_;
     MM_INFO("udp in %d", srv_->m_port);
-    
+
     int r = uv_udp_init(uv_default_loop(), &srv_->m_handler);
-    if(0 != r){
-      MM_ERR("udp server init failed: %s", uv_strerror(r));
-      return -1;
+    if (0 != r) {
+        MM_ERR("udp server init failed: %s", uv_strerror(r));
+        return -1;
     }
     srv_->m_handler.data = srv_;
     MM_ASSERT(0 == uv_ip4_addr("0.0.0.0", srv_->m_port, &srv_->m_socketaddr));
@@ -230,11 +230,10 @@ int br_udp_server_init(br_udp_server_t* srv_, int port_, void* user_parse_cb_) {
     return 0;
 }
 
-
 int br_tcp_server_init(br_tcp_server_t* server_, const char* name_, int port_,
         void* user_parse_cb_, int max_connections_) {
-   
-    strncpy(server_->m_name,name_, sizeof(server_->m_name));
+
+    strncpy(server_->m_name, name_, sizeof (server_->m_name));
     server_->m_port = port_;
     server_->m_user_parse_cb = user_parse_cb_;
     MM_INFO("%s:%d server listening", server_->m_name, server_->m_port);
@@ -242,7 +241,7 @@ int br_tcp_server_init(br_tcp_server_t* server_, const char* name_, int port_,
     server_->m_server_handler.data = server_;
 
     /* clients */
-    server_->m_clients = mmpool_easy_new(max_connections_,sizeof (br_tcp_t), server_);
+    server_->m_clients = mmpool_easy_new(max_connections_, sizeof (br_tcp_t), server_);
 
     MM_ASSERT(0 == uv_ip4_addr("0.0.0.0", server_->m_port, &server_->m_socketaddr));
     MM_ASSERT(0 == uv_tcp_bind(&server_->m_server_handler, (const struct sockaddr*) &server_->m_socketaddr));
@@ -256,18 +255,16 @@ static void on_resolved_udp_client(uv_getaddrinfo_t *resolver_, int status_,
     mmpool_item_t* cli_pool_item = (mmpool_item_t*) resolver_->data;
     br_udp_client_t* cli = (br_udp_client_t*) cli_pool_item->p;
     if (0 > status_) {
-        MM_ERR("dns failed for:%s %s", cli->m_addr,uv_strerror(status_));
+        MM_ERR("dns failed for:%s %s", cli->m_addr, uv_strerror(status_));
         mmpool_giveback(cli_pool_item);
         return;
-    }
-    else
-    {
+    } else {
         char ip_addr[17] = {'\0'};
         uv_ip4_name((struct sockaddr_in*) res_->ai_addr, ip_addr, 16);
         MM_INFO("%s.ip=%s", cli->m_addr, ip_addr);
         strcpy(cli->m_addr, ip_addr);
         int r = uv_ip4_addr(cli->m_addr, cli->m_port, &cli->m_socketaddr);
-        if(0 != r) MM_ERR("bad resolving:%s, %s", uv_strerror(r));
+        if (0 != r) MM_ERR("bad resolving:%s, %s", uv_strerror(r));
     }
 
     free(resolver_);
@@ -275,13 +272,13 @@ static void on_resolved_udp_client(uv_getaddrinfo_t *resolver_, int status_,
 }
 
 int br_udp_client_register(mmpool_item_t* cli_pool_item_) {
-    
+
     br_udp_client_t* cli = (br_udp_client_t*) cli_pool_item_->p;
     int r = uv_udp_init(uv_default_loop(), &cli->m_handler);
     if (0 != r) {
-        MM_ERR("new udp client failed :%s",uv_strerror(r));
-            return -1;
-    }    
+        MM_ERR("new udp client failed :%s", uv_strerror(r));
+        return -1;
+    }
 
     /* invalid ip, so we try a DNS resolution */
     if (0 == br_isipv4(cli->m_addr, strlen(cli->m_addr))) {
@@ -296,23 +293,23 @@ int br_udp_client_register(mmpool_item_t* cli_pool_item_) {
         /* DNS resolution error */
         r = uv_getaddrinfo(uv_default_loop(), resolver,
                 on_resolved_udp_client, cli->m_addr, NULL, &hints);
-        
+
         if (0 != r) {
-            MM_ERR("dns resolution failed for:%s, %s", cli->m_addr,uv_strerror(r));
+            MM_ERR("dns resolution failed for:%s, %s", cli->m_addr, uv_strerror(r));
             return -1;
         }
 
     } else {
         r = uv_ip4_addr(cli->m_addr, cli->m_port, &cli->m_socketaddr);
         if (0 != r) {
-           MM_ERR("invalid address:%s, %s", cli->m_addr,uv_strerror(r));
-           return -1;
-       }
+            MM_ERR("invalid address:%s, %s", cli->m_addr, uv_strerror(r));
+            return -1;
+        }
     }
     return 0;
 }
 
-int br_udp_client_add(mmpool_t* cli_pool_, const char* addr_,int port_) {
+int br_udp_client_add(mmpool_t* cli_pool_, const char* addr_, int port_) {
 
     mmpool_item_t* pool_item = mmpool_take(cli_pool_);
     if (NULL == pool_item) return -1;
@@ -382,7 +379,19 @@ static int on_headers_complete(http_parser* parser) {
             &cli->m_resbuf,
             1,
             on_http_after_write);
-    return 1;
+    return 0;
+}
+
+static int on_url_ready(http_parser* parser, const char *at, size_t length) {
+    br_http_client_t* cli = (br_http_client_t*) parser->data;
+    char* buf = malloc(length + 1);
+    if (buf) {
+        strncpy(buf, at, length);
+        buf[length] = '\0';
+        MM_INFO("(%5d) %s", cli->m_request_num, buf);
+        free(buf);
+    }
+    return 0;
 }
 
 static void on_http_read(uv_stream_t* handle_, ssize_t nread_, const uv_buf_t* buf_) {
@@ -435,9 +444,10 @@ static void on_http_connect(uv_stream_t* handle_, int status_) {
 int br_http_server_init(br_http_server_t* srv_, int port_, void* gen_response_cb_) {
 
     srv_->m_parser_settings.on_headers_complete = on_headers_complete;
+    srv_->m_parser_settings.on_url = on_url_ready;
     srv_->m_port = port_;
     srv_->m_gen_response_cb = gen_response_cb_;
-    MM_INFO("(%d) http %d", srv_->m_port);
+    MM_INFO("(%5d) http %ld", srv_->m_port);
     uv_tcp_init(uv_default_loop(), &srv_->m_handler);
     srv_->m_handler.data = srv_;
     MM_ASSERT(0 == uv_ip4_addr("0.0.0.0", srv_->m_port, &srv_->m_addr));
@@ -453,19 +463,25 @@ static uv_timer_t __brtsref_req;
 static unsigned __brtsref = 0;
 static char __brtsrefhex[8 + 1] = "00000000";
 
-static void on_tsref_update(uv_timer_t* handle, int status){
-    (void)handle;
-    (void)status;
-    __brtsref = (unsigned)time(NULL);
-    snprintf(__brtsrefhex,MM_HEX_TIMESTAMP_LEN + 1,"%x",__brtsref);
+static void on_tsref_update(uv_timer_t* handle, int status) {
+    (void) handle;
+    (void) status;
+    __brtsref = (unsigned) time(NULL);
+    snprintf(__brtsrefhex, MM_HEX_TIMESTAMP_LEN + 1, "%x", __brtsref);
 }
 
-void br_tsref_init(unsigned refresh_period_){
+void br_tsref_init(unsigned refresh_period_) {
     uv_timer_init(uv_default_loop(), &__brtsref_req);
     uv_timer_start(&__brtsref_req, on_tsref_update, 0, refresh_period_);
 }
-unsigned br_tsref_get(){ return __brtsref;}
-char* br_tsrefhex_get(){ return &__brtsrefhex[0];}
+
+unsigned br_tsref_get() {
+    return __brtsref;
+}
+
+char* br_tsrefhex_get() {
+    return &__brtsrefhex[0];
+}
 
 /**
  * common

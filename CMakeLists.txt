@@ -49,7 +49,7 @@ add_library(${LIBHC_A}
             src/lib/mmtrace.c 
             src/lib/mmpool.c 
             src/lib/sub0.c
-            src/lib/bagride.c)
+            src/lib/bagride2.c)
             
 add_executable (${RSR_EMBEDER_EXE} src/tools/embedfile.c)
 
@@ -61,8 +61,8 @@ add_custom_command(
 add_executable (${TEST_RSR_EMBEDER_EXE} ${GEN_DIR}/mini_html.c src/tests/test_embedfile.c)  
 
 add_executable (${TEST_ASYNC_HTTP_EXE} src/tests/test_async_http.c)  
-target_link_libraries (${TEST_ASYNC_HTTP_EXE} ${LIBHC_A} ${UV_A} -lpthread -lrt -lm )
+target_link_libraries (${TEST_ASYNC_HTTP_EXE} ${LIBHC_A} ${UV_A} -lpthread)
 
 add_executable (${TEST_AHE_EXE} ${GEN_DIR}/mini_html.c src/tests/test_ahe.c)  
-target_link_libraries (${TEST_AHE_EXE} ${LIBHC_A} ${UV_A} -lpthread -lrt )
+target_link_libraries (${TEST_AHE_EXE} ${LIBHC_A} ${UV_A} -lpthread)
 
