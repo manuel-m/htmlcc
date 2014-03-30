@@ -11,6 +11,9 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/resources/CMake/
 include(MacroOutOfSourceBuild)
 macro_ensure_out_of_source_build("${PROJECT_NAME} requires an out of source build.")
 
+include(MacroUseUv)
+macro_use_uv()
+
 include(MacroLogAll)
 macro_logall()
 
@@ -26,27 +29,40 @@ set(LIBRARY_OUTPUT_PATH ${DIST_DIR})
 
 set(RSR_EMBEDER_EXE embedfile)
 set(TEST_RSR_EMBEDER_EXE test_embedfile)
-set(TEST_SELECT_EXE test_select)
+set(TEST_ASYNC_HTTP_EXE test_async_http)
+set(TEST_AHE_EXE test_ahe)
 
 if (CMAKE_BUILD_TYPE MATCHES Debug)
   set(RSR_EMBEDER_EXE "${RSR_EMBEDER_EXE}_d")
   set(TEST_RSR_EMBEDER_EXE "${TEST_RSR_EMBEDER_EXE}_d")
-  set(TEST_SELECT_EXE "${TEST_SELECT_EXE}_d")
+  set(TEST_ASYNC_HTTP_EXE "${TEST_ASYNC_HTTP_EXE}_d")
+  set(TEST_AHE_EXE "${TEST_AHE_EXE}_d")
 endif (CMAKE_BUILD_TYPE MATCHES Debug)
 
-include_directories (src tests ${GEN_DIR})
+set(LIBHC_SRC src/lib)
+set(LIBHC_A htlmcc)
 
+include_directories (src ${GEN_DIR} src/lib)
+
+add_library(${LIBHC_A} 
+            src/lib/http_parser.c
+            src/lib/mmtrace.c 
+            src/lib/mmpool.c 
+            src/lib/sub0.c
+            src/lib/bagride.c)
             
 add_executable (${RSR_EMBEDER_EXE} src/tools/embedfile.c)
 
 add_custom_command(
-  OUTPUT ${GEN_DIR}/test_html.c
-  COMMAND ${RSR_EMBEDER_EXE} sym_test ${CMAKE_CURRENT_SOURCE_DIR}/resources/test_html.rsr ${GEN_DIR}/test_html.c
-  DEPENDS resources/test_html.rsr src/tools/embedfile.c)
+  OUTPUT ${GEN_DIR}/mini_html.c
+  COMMAND ${RSR_EMBEDER_EXE} mini_html ${CMAKE_CURRENT_SOURCE_DIR}/resources/mini_html.rsr ${GEN_DIR}/mini_html.c
+  DEPENDS resources/mini_html.rsr src/tools/embedfile.c)
 
-add_executable (${TEST_RSR_EMBEDER_EXE} ${GEN_DIR}/test_html.c src/tests/test_embedfile.c)  
-add_executable (${TEST_SELECT_EXE} src/tests/test_select.c)  
+add_executable (${TEST_RSR_EMBEDER_EXE} ${GEN_DIR}/mini_html.c src/tests/test_embedfile.c)  
 
+add_executable (${TEST_ASYNC_HTTP_EXE} src/tests/test_async_http.c)  
+target_link_libraries (${TEST_ASYNC_HTTP_EXE} ${LIBHC_A} ${UV_A} -lpthread -lrt -lm )
 
-
+add_executable (${TEST_AHE_EXE} ${GEN_DIR}/mini_html.c src/tests/test_ahe.c)  
+target_link_libraries (${TEST_AHE_EXE} ${LIBHC_A} ${UV_A} -lpthread -lrt )
 

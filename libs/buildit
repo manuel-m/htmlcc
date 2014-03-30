@@ -1,0 +1,23 @@
+#!/bin/bash
+
+LIBUV_ID=libuv_131201
+
+ROOT_PWD=$(pwd)
+
+#libuv
+cd ${ROOT_PWD}
+if [ ! -d ${LIBUV_ID} ]; then rm -rf ${LIBUV_ID};fi
+tar xvfz ${LIBUV_ID}.tgz
+cd libuv
+
+if [ $1 ]; then
+  if [ ${1}X==winX ]; then
+     make -f Makefile.mingw
+  fi
+else
+  which gyp || echo "install gyp"
+  ./gyp_uv.py -f make && make -C out
+  
+fi
+
+

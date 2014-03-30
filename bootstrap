@@ -1,0 +1,9 @@
+#!/bin/bash
+
+current_pwd=$(pwd)
+
+if [ ! $1X = nolibsX ]; then
+    cd libs && ./buildit
+fi
+
+
