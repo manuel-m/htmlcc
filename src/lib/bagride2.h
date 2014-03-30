@@ -100,6 +100,8 @@ typedef struct br_http_server_s {
     void* m_gen_response_cb;
 } br_http_server_t;
 
+#define BR_MAX_REQ_URL_LEN 2048
+
 typedef struct br_http_client_s {
     uv_tcp_t m_handle;
     http_parser m_parser;
@@ -107,6 +109,7 @@ typedef struct br_http_client_s {
     int m_request_num;
     br_http_server_t* m_server;
     uv_buf_t m_resbuf;
+    char requested_url[BR_MAX_REQ_URL_LEN];
 } br_http_client_t;
 
 int br_out_tcp_write_string(br_tcp_server_t*, const char* , size_t len_);

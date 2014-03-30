@@ -384,14 +384,14 @@ static int on_headers_complete(http_parser* parser) {
 
 static int on_url_ready(http_parser* parser, const char *at, size_t length) {
     br_http_client_t* cli = (br_http_client_t*) parser->data;
-    char* buf = malloc(length + 1);
-    if (buf) {
-        strncpy(buf, at, length);
-        buf[length] = '\0';
-        MM_INFO("(%5d) %s", cli->m_request_num, buf);
-        free(buf);
-    }
+    if (BR_MAX_REQ_URL_LEN <= length) MM_GERR("url too big");
+    
+    strncpy(cli->requested_url, at, length);
+    cli->requested_url[length] = '\0';
+    MM_INFO("(%5d) %s", cli->m_request_num, cli->requested_url);
     return 0;
+err:
+    return 1;
 }
 
 static void on_http_read(uv_stream_t* handle_, ssize_t nread_, const uv_buf_t* buf_) {
