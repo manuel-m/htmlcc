@@ -26,10 +26,12 @@ set(LIBRARY_OUTPUT_PATH ${DIST_DIR})
 
 set(RSR_EMBEDER_EXE embedfile)
 set(TEST_RSR_EMBEDER_EXE test_embedfile)
+set(TEST_SELECT_EXE test_select)
 
 if (CMAKE_BUILD_TYPE MATCHES Debug)
   set(RSR_EMBEDER_EXE "${RSR_EMBEDER_EXE}_d")
   set(TEST_RSR_EMBEDER_EXE "${TEST_RSR_EMBEDER_EXE}_d")
+  set(TEST_SELECT_EXE "${TEST_SELECT_EXE}_d")
 endif (CMAKE_BUILD_TYPE MATCHES Debug)
 
 include_directories (src tests ${GEN_DIR})
@@ -43,7 +45,7 @@ add_custom_command(
   DEPENDS resources/test_html.rsr src/tools/embedfile.c)
 
 add_executable (${TEST_RSR_EMBEDER_EXE} ${GEN_DIR}/test_html.c src/tests/test_embedfile.c)  
-
+add_executable (${TEST_SELECT_EXE} src/tests/test_select.c)  
 
 
 
