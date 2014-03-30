@@ -1,0 +1,92 @@
+#!/bin/bash
+
+CMAKE_W_ROOT=$(pwd)/cmake_w
+RELEASE_DIR=Release
+DEBUG_DIR=Debug
+
+# ----------------------------------------------------------------------- #
+#                                                                         #
+# ----------------------------------------------------------------------- #
+f_date()
+{
+  date '+%y%m%d_%H%M'
+}
+# ----------------------------------------------------------------------- #
+#                                                                         #
+# ----------------------------------------------------------------------- #
+f_cmake_arbo()
+{
+   [ -d ${CMAKE_W_ROOT} ] || rm -rf ${CMAKE_W_ROOT}
+   mkdir -p ${CMAKE_W_ROOT}/${RELEASE_DIR} ${CMAKE_W_ROOT}/${DEBUG_DIR}
+   [ -d generated_sources ] || mkdir generated_sources
+}
+# ----------------------------------------------------------------------- #
+#                                                                         #
+# ----------------------------------------------------------------------- #
+f_cmake_configure()
+{
+  cd ${CMAKE_W_ROOT}/${RELEASE_DIR}
+  cmake  -DCMAKE_BUILD_TYPE=Release ${PROJECT_DIR}
+
+  cd ${CMAKE_W_ROOT}/${DEBUG_DIR}
+  cmake  -DCMAKE_BUILD_TYPE=Debug ${PROJECT_DIR} 
+}
+# ----------------------------------------------------------------------- #
+#                                                                         #
+# ----------------------------------------------------------------------- #
+f_top_makefile()
+{
+  GMAKEFILE=${PROJECT_DIR}/Makefile
+
+  echo "GENDATE=$(f_date)" > ${GMAKEFILE}
+  echo "PROJECT_NAME=safe" >> ${GMAKEFILE}
+  echo "DEBUG_DIR=${CMAKE_W_ROOT}/${DEBUG_DIR}" >> ${GMAKEFILE}
+  echo "RELEASE_DIR=${CMAKE_W_ROOT}/${RELEASE_DIR}" >> ${GMAKEFILE}
+    
+  cat >> ${GMAKEFILE} << "EOF"
+
+main: test_release debug 
+
+install: release 
+	@ cd $(RELEASE_DIR); make install -s 
+	
+release: check 
+	@ cd $(RELEASE_DIR); make -s 
+	
+verbose_release: check
+	@ cd $(RELEASE_DIR); make VERBOSE=1
+
+debug: check
+	@ cd $(DEBUG_DIR); make -s
+	
+test_release: release
+	@ echo "TO BE DONE"
+
+test_debug: debug
+	@ echo "TO BE DONE"
+	
+.PHONY: clean
+clean:
+	@ cd $(RELEASE_DIR); make -s clean
+	@ cd $(DEBUG_DIR); make -s clean
+	
+check: 
+	@ [ -d $(RELEASE_DIR) ] || ./configure
+	
+.PHONY: archive
+archive:
+	git archive HEAD --prefix=$(PROJECT_NAME)_$(GENDATE)/ --format=tar.gz -o /tmp/$(PROJECT_NAME)_$(GENDATE).tar.gz
+	
+EOF
+
+}
+
+
+PROJECT_DIR=$(pwd)
+
+f_cmake_arbo
+f_cmake_configure
+f_top_makefile
+cd ${PROJECT_DIR}
+
+
