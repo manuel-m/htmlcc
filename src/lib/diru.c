@@ -3,6 +3,28 @@
 #include <string.h>
 #include "diru.h"
 
+
+/**
+ * 
+ * @param name
+ * @param level
+ * @param dir_cb_
+ * @param file_cb_
+ * @param user_data_
+ *
+ **/ 
+// traverse(Node node) {
+//    List<Node> nodes = [node];
+//    while (nodes.notEmpty) {
+//        Node n = nodes.shift();
+//        for (Node child in n.getChildren()) {
+//            nodes.add(child);
+//        }
+//        // do stuff with n, maybe
+//    }
+//}
+ 
+
 void diru_parse(const char *name, int level, on_dir_cb dir_cb_, on_file_cb file_cb_, void* user_data_) {
     DIR *dir;
     struct dirent *entry;
