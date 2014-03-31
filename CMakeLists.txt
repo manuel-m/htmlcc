@@ -32,6 +32,7 @@ set(TEST_RSR_EMBEDER_EXE test_embedfile)
 set(TEST_ASYNC_HTTP_EXE test_async_http)
 set(TEST_AHE_EXE test_ahe)
 set(TEST_HASHMAP_EXE test_hashmap)
+set(TEST_RECURSE_DIR_EXE test_recurse_dir)
 
 if (CMAKE_BUILD_TYPE MATCHES Debug)
   set(RSR_EMBEDER_EXE "${RSR_EMBEDER_EXE}_d")
@@ -39,6 +40,7 @@ if (CMAKE_BUILD_TYPE MATCHES Debug)
   set(TEST_ASYNC_HTTP_EXE "${TEST_ASYNC_HTTP_EXE}_d")
   set(TEST_AHE_EXE "${TEST_AHE_EXE}_d")
   set(TEST_HASHMAP_EXE "${TEST_HASHMAP_EXE}_d")
+  set(TEST_RECURSE_DIR_EXE "${TEST_RECURSE_DIR_EXE}_d")
 endif (CMAKE_BUILD_TYPE MATCHES Debug)
 
 set(LIBHC_SRC src/lib)
@@ -52,6 +54,7 @@ add_library(${LIBHC_A}
             src/lib/mmpool.c 
             src/lib/sub0.c
             src/lib/hashmap.c
+            src/lib/diru.c
             src/lib/bagride2.c)
             
 add_executable (${RSR_EMBEDER_EXE} src/tools/embedfile.c)
@@ -75,4 +78,6 @@ add_executable (${TEST_AHE_EXE} ${GEN_DIR}/mini_html.c ${GEN_DIR}/not_found_html
 target_link_libraries (${TEST_AHE_EXE} ${LIBHC_A} ${UV_A} -lpthread)
 
 add_executable (${TEST_HASHMAP_EXE} src/lib/hashmap.c src/tests/test_hashmap.c)
+
+add_executable (${TEST_RECURSE_DIR_EXE} src/lib/diru.c src/tests/test_recurse_dir.c)
 
