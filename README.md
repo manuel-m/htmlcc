@@ -13,4 +13,4 @@ build instructions
 documentation
 =============
 
-- src/tests/test_ahe.c
+- [test_ahe](src/tests/test_ahe.c)
