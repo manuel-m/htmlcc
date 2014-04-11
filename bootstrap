@@ -1,20 +1,28 @@
 #!/bin/bash
-
-if [ $(uname -m) == 'x86_64' ]; then
-  # 64-bit stuff here
-  MYARCHTGT=elf64-x86-64
-else
-  # 32-bit stuff here
-  MYARCHTGT=elf32-i386
-fi
-
-current_pwd=$(pwd)
-
-cd doc/public_html
+#
+#------------------------------------------------------------------------------
+# generate resources objects
+#------------------------------------------------------------------------------
+function f_gen_rsr
+{
+  cd doc/public_html
   for f in $(find -type f); do 
-#    b=$(basename $f);xxd -i ${f} > ../../generated_sources/${b}.c; 
     objcopy -B i386 -O ${MYARCHTGT} -I binary ${f} ../../generated_sources/${b}.o; 
   done
+}
+
+#------------------------------------------------------------------------------
+# M A I N
+#------------------------------------------------------------------------------
+current_pwd=$(pwd)
+
+# arch detection
+MYARCHTGT=elf64-x86-64
+[ $(uname -m) == 'x86_64' ]||MYARCHTGT=elf32-i386
+
+f_gen_rsr
+
+
 cd ${current_pwd}
 
 if [ ! $1X = nolibsX ]; then

@@ -60,7 +60,6 @@ add_library(${LIBHC_A}
             src/lib/diru.c
             src/lib/bagride2.c)
             
-add_executable (${RSR_EMBEDER_EXE} src/tools/embedfile.c)
 
 add_executable (${TEST_ASYNC_HTTP_EXE} src/tests/test_async_http.c)  
 target_link_libraries (${TEST_ASYNC_HTTP_EXE} ${LIBHC_A} ${UV_A} -lpthread)
