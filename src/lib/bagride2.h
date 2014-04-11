@@ -111,10 +111,14 @@ typedef struct br_tcp_server_s {
         uv_buf_t m_resbuf;
         char requested_url[BR_MAX_REQ_URL_LEN];
     } br_http_client_t;
+    
+#define BR_HTML 0    
+#define BR_JS 1    
 
     typedef struct br_http_resource_s {
         size_t m_len;
-        const char* m_data;
+        int type;
+        const unsigned char* m_data;
     } br_http_resource_t;
 
     int br_out_tcp_write_string(br_tcp_server_t*, const char*, size_t len_);
@@ -138,7 +142,7 @@ typedef struct br_tcp_server_s {
 
     int br_http_server_init(br_http_server_t* srv_, int port_, void* gen_response_cb_);
     int br_http_server_resource_add(br_http_server_t* srv_, const char* key,
-            const char* data_, size_t size_);
+            const unsigned char* data_, uint8_t* size_, int type_);
 
 
     /**

@@ -2,6 +2,13 @@
 
 current_pwd=$(pwd)
 
+cd doc/public_html
+  for f in $(find -type f); do 
+    b=$(basename $f);xxd -i ${f} > ../../generated_sources/${b}.c; 
+    objcopy -B i386 -O elf64-x86-64 -I binary ${f} ../../generated_sources/${b}.o; 
+  done
+cd ${current_pwd}
+
 if [ ! $1X = nolibsX ]; then
     cd libs && ./buildit
 fi

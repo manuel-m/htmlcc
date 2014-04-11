@@ -5,11 +5,18 @@
 #include "mmtrace.h"
 #include "bagride2.h"
 
+extern uint8_t js_remark_min_js[] asm("_binary___js_remark_min_js_start");
+extern uint8_t js_remark_min_js_size[] asm("_binary___js_remark_min_js_size");
+extern uint8_t js_remark_min_js_end[] asm("_binary___js_remark_min_js_end");
 
-extern const char mini_html[];
-extern const size_t mini_html_len;
-extern const char not_found_html[];
-extern const size_t not_found_html_len;
+extern uint8_t not_found_html[] asm("_binary___not_found_html_start");
+extern uint8_t not_found_html_size[] asm("_binary___not_found_html_size");
+extern uint8_t not_found_html_end[] asm("_binary___not_found_html_end");
+
+extern uint8_t htmlcc_html[] asm("_binary___htmlcc_html_start");
+extern uint8_t htmlcc_html_size[] asm("_binary___htmlcc_html_size");
+extern uint8_t htmlcc_html_end[] asm("_binary___htmlcc_html_end");
+
 
 static br_http_server_t srv;
 
@@ -24,13 +31,16 @@ static int on_stats_response(br_http_client_t* c_) {
 
     c_->m_resbuf.len = asprintf(&c_->m_resbuf.base,
             "HTTP/1.1 200 OK\r\n"
-            "Server: cc/0.1\r\n"
-            "Content-Type: text/html\r\n"
+            "Server: htmlcc/0.1\r\n"
+            "Content-Type: %s\r\n"
             "Connection: close\r\n"
             "Content-Length: %d\r\n"
             "\r\n"
             "%s",
-            (int) rsr->m_len, rsr->m_data);
+            BR_HTML == rsr->type ? "text/html" : "text/javascript",
+            (int) rsr->m_len,
+            rsr->m_data);
+
     return 0;
 }
 
@@ -39,8 +49,9 @@ int main(int argc, char **argv) {
     (void) argv;
 
     br_http_server_init(&srv, 9999, on_stats_response);
-    br_http_server_resource_add(&srv, "/", mini_html, mini_html_len);
-    br_http_server_resource_add(&srv, "not_found", not_found_html, not_found_html_len);
+    br_http_server_resource_add(&srv, "/", htmlcc_html, htmlcc_html_size, BR_HTML);
+    br_http_server_resource_add(&srv, "/js/remark.min.js", js_remark_min_js, js_remark_min_js_size, BR_JS);
+    br_http_server_resource_add(&srv, "not_found", not_found_html, not_found_html_size, BR_HTML);
 
 
     br_run();

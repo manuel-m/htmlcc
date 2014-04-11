@@ -22,8 +22,7 @@ int main(int argc, char** argv) {
     if (!out) goto err;
 
     fprintf(out, "#include <stddef.h>\n");
-    fprintf(out, "#include <stdint.h>\n");
-    fprintf(out, "const uint32_t %s[] = {\n", sym);
+    fprintf(out, "const char %s[] = {\n", sym);
 
     char buf[HTMLCC_BUF_LEN];
     size_t nread = 0;
@@ -34,8 +33,8 @@ int main(int argc, char** argv) {
         for (i = 0; i < nread; i++) {
 
             if (buf[i] >= 0) {
-                fprintf(out, "0x%08x,", buf[i]);
-                if (++linecount == 8) {
+                fprintf(out, "0x%02x,", buf[i]);
+                if (++linecount == 16) {
                     fprintf(out, "\n");
                     linecount = 0;
                 }

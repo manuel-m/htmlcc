@@ -59,25 +59,15 @@ add_library(${LIBHC_A}
             
 add_executable (${RSR_EMBEDER_EXE} src/tools/embedfile.c)
 
-add_custom_command(
-  OUTPUT ${GEN_DIR}/mini_html.c
-  COMMAND ${RSR_EMBEDER_EXE} mini_html ${CMAKE_CURRENT_SOURCE_DIR}/resources/mini_html.rsr ${GEN_DIR}/mini_html.c
-  DEPENDS resources/mini_html.rsr src/tools/embedfile.c)
-
-add_custom_command(
-  OUTPUT ${GEN_DIR}/not_found_html.c
-  COMMAND ${RSR_EMBEDER_EXE} not_found_html ${CMAKE_CURRENT_SOURCE_DIR}/resources/not_found_html.rsr ${GEN_DIR}/not_found_html.c
-  DEPENDS resources/not_found_html.rsr src/tools/embedfile.c)
-
-add_executable (${TEST_RSR_EMBEDER_EXE} ${GEN_DIR}/mini_html.c src/tests/test_embedfile.c)  
-
 add_executable (${TEST_ASYNC_HTTP_EXE} src/tests/test_async_http.c)  
 target_link_libraries (${TEST_ASYNC_HTTP_EXE} ${LIBHC_A} ${UV_A} -lpthread)
 
-add_executable (${TEST_AHE_EXE} ${GEN_DIR}/mini_html.c ${GEN_DIR}/not_found_html.c src/tests/test_ahe.c)
-target_link_libraries (${TEST_AHE_EXE} ${LIBHC_A} ${UV_A} -lpthread)
 
 add_executable (${TEST_HASHMAP_EXE} src/lib/hashmap.c src/tests/test_hashmap.c)
 
 add_executable (${TEST_RECURSE_DIR_EXE} src/lib/diru.c src/tests/test_recurse_dir.c)
 
+
+add_executable (${TEST_AHE_EXE} ${GEN_DIR}/htmlcc.html.c src/tests/test_ahe.c)
+target_link_libraries (${TEST_AHE_EXE} ${LIBHC_A} ${UV_A} -lpthread  ${GEN_DIR}/remark.min.js.o ${GEN_DIR}/htmlcc.html.o ${GEN_DIR}/not_found.html.o)
+  
