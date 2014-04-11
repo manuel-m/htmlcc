@@ -31,6 +31,7 @@ set(RSR_EMBEDER_EXE embedfile)
 set(TEST_RSR_EMBEDER_EXE test_embedfile)
 set(TEST_ASYNC_HTTP_EXE test_async_http)
 set(TEST_AHE_EXE test_ahe)
+set(TEST_AHE2_EXE test_ahe2)
 set(TEST_HASHMAP_EXE test_hashmap)
 set(TEST_RECURSE_DIR_EXE test_recurse_dir)
 
@@ -39,12 +40,14 @@ if (CMAKE_BUILD_TYPE MATCHES Debug)
   set(TEST_RSR_EMBEDER_EXE "${TEST_RSR_EMBEDER_EXE}_d")
   set(TEST_ASYNC_HTTP_EXE "${TEST_ASYNC_HTTP_EXE}_d")
   set(TEST_AHE_EXE "${TEST_AHE_EXE}_d")
+  set(TEST_AHE2_EXE "${TEST_AHE2_EXE}_d")
   set(TEST_HASHMAP_EXE "${TEST_HASHMAP_EXE}_d")
   set(TEST_RECURSE_DIR_EXE "${TEST_RECURSE_DIR_EXE}_d")
 endif (CMAKE_BUILD_TYPE MATCHES Debug)
 
 set(LIBHC_SRC src/lib)
-set(LIBHC_A htlmcc)
+set(LIBHC_A htmlcc)
+set(LIBRSR_A rsr)
 
 include_directories (src ${GEN_DIR} src/lib)
 
@@ -68,6 +71,14 @@ add_executable (${TEST_HASHMAP_EXE} src/lib/hashmap.c src/tests/test_hashmap.c)
 add_executable (${TEST_RECURSE_DIR_EXE} src/lib/diru.c src/tests/test_recurse_dir.c)
 
 
-add_executable (${TEST_AHE_EXE} ${GEN_DIR}/htmlcc.html.c src/tests/test_ahe.c)
+add_executable (${TEST_AHE_EXE} src/tests/test_ahe.c)
 target_link_libraries (${TEST_AHE_EXE} ${LIBHC_A} ${UV_A} -lpthread  ${GEN_DIR}/remark.min.js.o ${GEN_DIR}/htmlcc.html.o ${GEN_DIR}/not_found.html.o)
-  
+
+#add_library(${LIBRSR_A}   
+#            ${GEN_DIR}/htmlcc.html.c 
+#            ${GEN_DIR}/not_found.html.c 
+#            ${GEN_DIR}/remark.min.js.c)
+
+
+#add_executable (${TEST_AHE2_EXE} src/tests/test_ahe2.c)
+#target_link_libraries (${TEST2_AHE_EXE} ${LIBHC_A} ${UV_A} -lpthread)

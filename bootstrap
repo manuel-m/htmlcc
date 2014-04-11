@@ -1,11 +1,19 @@
 #!/bin/bash
 
+if [ $(uname -m) == 'x86_64' ]; then
+  # 64-bit stuff here
+  MYARCHTGT=elf64-x86-64
+else
+  # 32-bit stuff here
+  MYARCHTGT=elf32-i386
+fi
+
 current_pwd=$(pwd)
 
 cd doc/public_html
   for f in $(find -type f); do 
-    b=$(basename $f);xxd -i ${f} > ../../generated_sources/${b}.c; 
-    objcopy -B i386 -O elf64-x86-64 -I binary ${f} ../../generated_sources/${b}.o; 
+#    b=$(basename $f);xxd -i ${f} > ../../generated_sources/${b}.c; 
+    objcopy -B i386 -O ${MYARCHTGT} -I binary ${f} ../../generated_sources/${b}.o; 
   done
 cd ${current_pwd}
 
