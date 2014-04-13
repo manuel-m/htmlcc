@@ -40,6 +40,8 @@ int main(int argc, char **argv) {
     (void) argv;
     
     br_http_server_init(&srv, 9999, on_stats_response);
+    
+    
     br_http_server_resource_add(&srv, "/", __htmlcc_html, __htmlcc_html_len, BR_HTML);
     br_http_server_resource_add(&srv, "/js/remark.min.js", __js_remark_min_js, __js_remark_min_js_len, BR_JS);
     br_http_server_resource_add(&srv, "not_found", __not_found_html, __not_found_html_len, BR_HTML);
