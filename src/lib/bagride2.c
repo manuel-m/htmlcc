@@ -442,21 +442,26 @@ static void on_http_connect(uv_stream_t* handle_, int status_) {
     }
 }
 
+QD_DECL_STR(html);
+QD_DECL_STR(js);
+QD_DECL_STR(ico);
 
+static const br_http_type_item_t http_hrsr_items[] = {
+    {
+        .id = QD_STR(html),
+        .response_type = "text/html"
+    },
+    {
+        .id = QD_STR(js),
+        .response_type = "text/javascript"
+    },
+    {
+        .id = QD_STR(ico),
+        .response_type = "text/html" /* TODO */
+    },    
+    
 
-//QD_DECL_STR(html);
-//QD_DECL_STR(js);
-//
-//static const br_http_type_item_t http_hrsr_items[] = {
-//    {
-//        .id = QD_STR(html),
-//        .resp_type = "text/html"
-//    },
-//    {
-//        .id = QD_STR(js),
-//        .resp_type = "text/javascript"
-//    },
-//};
+};
 
 int br_http_server_init(br_http_server_t* srv_, int port_, void* gen_response_cb_) {
 
@@ -474,30 +479,21 @@ int br_http_server_init(br_http_server_t* srv_, int port_, void* gen_response_cb
     MM_ASSERT(0 == uv_listen((uv_stream_t*) & srv_->m_handler, BR_MAX_CONNECTIONS, on_http_connect));
 
     srv_->m_resources = hashmap_new();
-
-    /* file type handling ... static list for now */
+    
+/* file type handling ... static list for now */
     {
         srv_->m_types = hashmap_new();
 
-        /* html */
-        {
-            br_http_type_item_t* item = calloc(1, sizeof (br_http_type_item_t));
-            item->id = strdup("html");
-            item->response_type = strdup("text/html");
-
-            if (MAP_OK != hashmap_put(srv_->m_types, item->id, (any_t) item))
-                MM_GERR("resource add: %s", item->id);
+        size_t i;
+        size_t sz = sizeof (http_hrsr_items) / sizeof (br_http_type_item_t);
+        for (i = 0; i < sz; i++) {
+            const br_http_type_item_t* p = &http_hrsr_items[i];
+            if (MAP_OK != hashmap_put(srv_->m_types, p->id, (any_t)p)) 
+                MM_GERR("resource add: %s %s", p->id, p->response_type);
         }
-        /* js */
-        {
-            br_http_type_item_t* item = calloc(1, sizeof (br_http_type_item_t));
-            item->id = strdup("js");
-            item->response_type = strdup("text/javascript");
+    }    
 
-            if (MAP_OK != hashmap_put(srv_->m_types, item->id, (any_t) item))
-                MM_GERR("resource add: %s", item->id);
-        }        
-    }
+
 
 
 end:

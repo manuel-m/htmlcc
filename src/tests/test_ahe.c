@@ -22,7 +22,7 @@ static int on_stats_response(br_http_client_t* c_) {
 
     if (MAP_OK != (hashmap_get(srv->m_resources, url, (void**) (&rsr)))) {
         MM_INFO("(%5d) invalid requested url:%s", c_->m_request_num, url);
-        hashmap_get(srv->m_resources, "not_found", (void**) (&rsr));
+        hashmap_get(srv->m_resources, "/not_found.html", (void**) (&rsr));
     }
     
     br_http_type_item_t* type = NULL;
@@ -45,6 +45,7 @@ static int on_stats_response(br_http_client_t* c_) {
             (int) rsr->m_len,
             rsr->m_data);
 
+   
     return 0;
 }
 
