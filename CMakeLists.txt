@@ -69,9 +69,16 @@ add_executable (${TEST_HASHMAP_EXE} src/lib/hashmap.c src/tests/test_hashmap.c)
 
 add_executable (${TEST_RECURSE_DIR_EXE} src/lib/diru.c src/tests/test_recurse_dir.c)
 
+#
+#add_executable (${TEST_AHE_EXE} src/tests/test_ahe.c)
+#target_link_libraries (${TEST_AHE_EXE} ${LIBHC_A} ${UV_A} -lpthread  ${GEN_DIR}/remark.min.js.o ${GEN_DIR}/htmlcc.html.o ${GEN_DIR}/not_found.html.o)
 
-add_executable (${TEST_AHE_EXE} src/tests/test_ahe.c)
-target_link_libraries (${TEST_AHE_EXE} ${LIBHC_A} ${UV_A} -lpthread  ${GEN_DIR}/remark.min.js.o ${GEN_DIR}/htmlcc.html.o ${GEN_DIR}/not_found.html.o)
+add_executable (test_ahe_xxd src/tests/test_ahe_xxd.c)
+target_link_libraries (test_ahe_xxd ${LIBHC_A} ${UV_A} -lpthread )
+
+
+add_executable (embed src/tools/embed.c)
+target_link_libraries(embed ${LIBHC_A})
 
 #add_library(${LIBRSR_A}   
 #            ${GEN_DIR}/htmlcc.html.c 
