@@ -460,12 +460,13 @@ int br_http_server_init(br_http_server_t* srv_, int port_, void* gen_response_cb
 }
 
 int br_http_server_resource_add(br_http_server_t* srv_, const char* key_,
-        const unsigned char* data_, uint8_t* size_, int type_) {
+        const unsigned char* data_, const size_t size_, int type_) {
 
     br_http_resource_t* rsr = malloc(sizeof (br_http_resource_t));
     if (!rsr) MM_GERR("resource container allocation");
     rsr->m_data = data_;
-    rsr->m_len = (size_t) ((void *) size_);
+//    rsr->m_len = (size_t) ((void *) size_);
+    rsr->m_len = size_;
     rsr->type = type_;
 
     if (MAP_OK != hashmap_put(srv_->m_resources, key_, rsr)) MM_GERR("resource add: %d",key_);

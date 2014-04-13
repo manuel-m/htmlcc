@@ -142,7 +142,7 @@ typedef struct br_tcp_server_s {
 
     int br_http_server_init(br_http_server_t* srv_, int port_, void* gen_response_cb_);
     int br_http_server_resource_add(br_http_server_t* srv_, const char* key,
-            const unsigned char* data_, uint8_t* size_, int type_);
+            const unsigned char* data_, const size_t size_, int type_);
 
 
     /**

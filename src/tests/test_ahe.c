@@ -17,7 +17,6 @@ extern uint8_t htmlcc_html[] asm("_binary___htmlcc_html_start");
 extern uint8_t htmlcc_html_size[] asm("_binary___htmlcc_html_size");
 extern uint8_t htmlcc_html_end[] asm("_binary___htmlcc_html_end");
 
-
 static br_http_server_t srv;
 
 static int on_stats_response(br_http_client_t* c_) {
@@ -47,11 +46,15 @@ static int on_stats_response(br_http_client_t* c_) {
 int main(int argc, char **argv) {
     (void) argc;
     (void) argv;
+    
+    const size_t htmlcc_html_sz =(size_t)((void*)htmlcc_html_size);
+    const size_t js_remark_min_js_sz =(size_t)((void*)js_remark_min_js_size);
+    const size_t not_found_html_sz =(size_t)((void*)not_found_html_size);
 
     br_http_server_init(&srv, 9999, on_stats_response);
-    br_http_server_resource_add(&srv, "/", htmlcc_html, htmlcc_html_size, BR_HTML);
-    br_http_server_resource_add(&srv, "/js/remark.min.js", js_remark_min_js, js_remark_min_js_size, BR_JS);
-    br_http_server_resource_add(&srv, "not_found", not_found_html, not_found_html_size, BR_HTML);
+    br_http_server_resource_add(&srv, "/", htmlcc_html, htmlcc_html_sz, BR_HTML);
+    br_http_server_resource_add(&srv, "/js/remark.min.js", js_remark_min_js, js_remark_min_js_sz, BR_JS);
+    br_http_server_resource_add(&srv, "not_found", not_found_html, not_found_html_sz, BR_HTML);
 
 
     br_run();
