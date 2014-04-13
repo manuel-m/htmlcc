@@ -8,9 +8,9 @@ extern "C" {
 #include <stdint.h>
 
 typedef struct {
-  const size_t sz,
-  const uint8_t* data,
-  const char key[],
+  const size_t sz;
+  const uint8_t* data;
+  const char key[];
 } mmembed_s;
 
 

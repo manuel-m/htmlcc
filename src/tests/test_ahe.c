@@ -5,28 +5,33 @@
 #include "mmtrace.h"
 #include "bagride2.h"
 
-extern uint8_t js_remark_min_js[] asm("_binary___js_remark_min_js_start");
-extern uint8_t js_remark_min_js_size[] asm("_binary___js_remark_min_js_size");
-extern uint8_t js_remark_min_js_end[] asm("_binary___js_remark_min_js_end");
-
-extern uint8_t not_found_html[] asm("_binary___not_found_html_start");
-extern uint8_t not_found_html_size[] asm("_binary___not_found_html_size");
-extern uint8_t not_found_html_end[] asm("_binary___not_found_html_end");
-
-extern uint8_t htmlcc_html[] asm("_binary___htmlcc_html_start");
-extern uint8_t htmlcc_html_size[] asm("_binary___htmlcc_html_size");
-extern uint8_t htmlcc_html_end[] asm("_binary___htmlcc_html_end");
+#include "hxd_generated.h"
 
 static br_http_server_t srv;
 
 static int on_stats_response(br_http_client_t* c_) {
 
     br_http_resource_t* rsr;
+    const char index_url[]="/index.html";
+    const char* url = c_->requested_url;
+    
+    const br_http_server_t* srv = c_->m_server;
+    
+    /* '/' =>  '/index.html' */
+    if(0 == strcmp(c_->requested_url,"/")) url = index_url;
 
-    if (MAP_OK != (hashmap_get(c_->m_server->m_resources, c_->requested_url, (void**) (&rsr)))) {
-        MM_INFO("(%5d) invalid requested url:%s", c_->m_request_num, c_->requested_url);
-        hashmap_get(c_->m_server->m_resources, "not_found", (void**) (&rsr));
+    if (MAP_OK != (hashmap_get(srv->m_resources, url, (void**) (&rsr)))) {
+        MM_INFO("(%5d) invalid requested url:%s", c_->m_request_num, url);
+        hashmap_get(srv->m_resources, "not_found", (void**) (&rsr));
     }
+    
+    br_http_type_item_t* type = NULL;
+    if (MAP_OK != (hashmap_get(srv->m_types, rsr->m_type, (void**) (&type)))) {
+        MM_INFO("(%5d) invalid requested type:%s", c_->m_request_num, url);
+    }    
+    
+    MM_INFO("(%5d) response id:%s", c_->m_request_num, type->id);
+    MM_INFO("(%5d) response type:%s", c_->m_request_num, type->response_type);
 
     c_->m_resbuf.len = asprintf(&c_->m_resbuf.base,
             "HTTP/1.1 200 OK\r\n"
@@ -36,7 +41,7 @@ static int on_stats_response(br_http_client_t* c_) {
             "Content-Length: %d\r\n"
             "\r\n"
             "%s",
-            BR_HTML == rsr->type ? "text/html" : "text/javascript",
+            type->response_type,
             (int) rsr->m_len,
             rsr->m_data);
 
@@ -47,15 +52,14 @@ int main(int argc, char **argv) {
     (void) argc;
     (void) argv;
     
-    const size_t htmlcc_html_sz =(size_t)((void*)htmlcc_html_size);
-    const size_t js_remark_min_js_sz =(size_t)((void*)js_remark_min_js_size);
-    const size_t not_found_html_sz =(size_t)((void*)not_found_html_size);
-
     br_http_server_init(&srv, 9999, on_stats_response);
-    br_http_server_resource_add(&srv, "/", htmlcc_html, htmlcc_html_sz, BR_HTML);
-    br_http_server_resource_add(&srv, "/js/remark.min.js", js_remark_min_js, js_remark_min_js_sz, BR_JS);
-    br_http_server_resource_add(&srv, "not_found", not_found_html, not_found_html_sz, BR_HTML);
-
+    
+    size_t i;
+    for(i=0;i<hxds_ahe_sz;i++){
+      const mmembed_s* s = hxds_ahe[i];
+      MM_INFO("(INIT) adding %s (%zu)", s->key, s->sz);
+      br_http_server_rsr_add(&srv, s->key, s->data, s->sz);   
+    }
 
     br_run();
     return 0;

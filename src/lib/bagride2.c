@@ -5,6 +5,7 @@
 #include "bagride2.h"
 #include "sub0.h"
 #include "mmtrace.h"
+#include "qdirty.h"
 
 static int br_isipv4(const char *ip_, size_t size_) {
     int i;
@@ -385,7 +386,7 @@ static int on_headers_complete(http_parser* parser) {
 static int on_url_ready(http_parser* parser, const char *at, size_t length) {
     br_http_client_t* cli = (br_http_client_t*) parser->data;
     if (BR_MAX_REQ_URL_LEN <= length) MM_GERR("url too big");
-    
+
     strncpy(cli->requested_url, at, length);
     cli->requested_url[length] = '\0';
     MM_INFO("(%5d) %s", cli->m_request_num, cli->requested_url);
@@ -441,7 +442,25 @@ static void on_http_connect(uv_stream_t* handle_, int status_) {
     }
 }
 
+
+
+//QD_DECL_STR(html);
+//QD_DECL_STR(js);
+//
+//static const br_http_type_item_t http_hrsr_items[] = {
+//    {
+//        .id = QD_STR(html),
+//        .resp_type = "text/html"
+//    },
+//    {
+//        .id = QD_STR(js),
+//        .resp_type = "text/javascript"
+//    },
+//};
+
 int br_http_server_init(br_http_server_t* srv_, int port_, void* gen_response_cb_) {
+
+    int res = 0;
 
     srv_->m_parser_settings.on_headers_complete = on_headers_complete;
     srv_->m_parser_settings.on_url = on_url_ready;
@@ -453,26 +472,73 @@ int br_http_server_init(br_http_server_t* srv_, int port_, void* gen_response_cb
     MM_ASSERT(0 == uv_ip4_addr("0.0.0.0", srv_->m_port, &srv_->m_addr));
     MM_ASSERT(0 == uv_tcp_bind(&srv_->m_handler, (const struct sockaddr*) &srv_->m_addr));
     MM_ASSERT(0 == uv_listen((uv_stream_t*) & srv_->m_handler, BR_MAX_CONNECTIONS, on_http_connect));
-    
+
     srv_->m_resources = hashmap_new();
-    
-    return 0;
+
+    /* file type handling ... static list for now */
+    {
+        srv_->m_types = hashmap_new();
+
+        /* html */
+        {
+            br_http_type_item_t* item = calloc(1, sizeof (br_http_type_item_t));
+            item->id = strdup("html");
+            item->response_type = strdup("text/html");
+
+            if (MAP_OK != hashmap_put(srv_->m_types, item->id, (any_t) item))
+                MM_GERR("resource add: %s", item->id);
+        }
+        /* js */
+        {
+            br_http_type_item_t* item = calloc(1, sizeof (br_http_type_item_t));
+            item->id = strdup("js");
+            item->response_type = strdup("text/javascript");
+
+            if (MAP_OK != hashmap_put(srv_->m_types, item->id, (any_t) item))
+                MM_GERR("resource add: %s", item->id);
+        }        
+    }
+
+
+end:
+
+return res;
+
+err:
+res = -1;
+goto end;
 }
 
-int br_http_server_resource_add(br_http_server_t* srv_, const char* key_,
-        const unsigned char* data_, const size_t size_, int type_) {
+int br_http_server_rsr_add(br_http_server_t* srv_, const char* key_,
+        const unsigned char* data_, const size_t size_) {
 
     br_http_resource_t* rsr = malloc(sizeof (br_http_resource_t));
     if (!rsr) MM_GERR("resource container allocation");
     rsr->m_data = data_;
-//    rsr->m_len = (size_t) ((void *) size_);
     rsr->m_len = size_;
-    rsr->type = type_;
 
-    if (MAP_OK != hashmap_put(srv_->m_resources, key_, rsr)) MM_GERR("resource add: %d",key_);
+    /* type extract from key suffix
+     * -> search suffix from end 
+     */
+    const char* p = key_ + strlen(key_);
+    const char* end = p;
+    rsr->m_type = NULL;
+    do {
+        if ((*p == '.') && (p != end)) {
+            rsr->m_type = p + 1;
+            MM_INFO("added type: %s %s", key_, rsr->m_type);
+            break;
+        }
+        --p;
+    } while (p != key_);
+
+    if (!rsr->m_type) MM_GERR("invalid resource: %d", key_);
+
+    if (MAP_OK != hashmap_put(srv_->m_resources, key_, rsr)) MM_GERR("resource add: %d", key_);
     return 0;
 
 err:
+
     return -1;
 }
 
@@ -484,22 +550,26 @@ static unsigned __brtsref = 0;
 static char __brtsrefhex[8 + 1] = "00000000";
 
 static void on_tsref_update(uv_timer_t* handle, int status) {
-    (void) handle;
+    (
+            void) handle;
     (void) status;
     __brtsref = (unsigned) time(NULL);
     snprintf(__brtsrefhex, MM_HEX_TIMESTAMP_LEN + 1, "%x", __brtsref);
 }
 
 void br_tsref_init(unsigned refresh_period_) {
+
     uv_timer_init(uv_default_loop(), &__brtsref_req);
     uv_timer_start(&__brtsref_req, on_tsref_update, 0, refresh_period_);
 }
 
 unsigned br_tsref_get() {
+
     return __brtsref;
 }
 
 char* br_tsrefhex_get() {
+
     return &__brtsrefhex[0];
 }
 
@@ -507,6 +577,7 @@ char* br_tsrefhex_get() {
  * common
  */
 void br_run(void) {
+
     uv_run(uv_default_loop(), UV_RUN_DEFAULT);
 }
 

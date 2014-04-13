@@ -24,7 +24,7 @@ extern "C" {
      **/
 #define MM_MAX_HOST_NAME 256
 
-typedef struct br_tcp_server_s {
+    typedef struct br_tcp_server_s {
         int m_port;
         struct sockaddr_in m_socketaddr;
         br_tcp_t m_server_handler;
@@ -98,6 +98,7 @@ typedef struct br_tcp_server_s {
         int m_port;
         void* m_gen_response_cb;
         map_t m_resources;
+        map_t m_types;
     } br_http_server_t;
 
 #define BR_MAX_REQ_URL_LEN 2048
@@ -111,15 +112,20 @@ typedef struct br_tcp_server_s {
         uv_buf_t m_resbuf;
         char requested_url[BR_MAX_REQ_URL_LEN];
     } br_http_client_t;
-    
+
 #define BR_HTML 0    
 #define BR_JS 1    
 
     typedef struct br_http_resource_s {
         size_t m_len;
-        int type;
+        const char* m_type;
         const unsigned char* m_data;
     } br_http_resource_t;
+
+    typedef struct br_http_type_item_s {
+        const char* id;
+        const char* response_type;
+    } br_http_type_item_t;
 
     int br_out_tcp_write_string(br_tcp_server_t*, const char*, size_t len_);
 
@@ -141,8 +147,8 @@ typedef struct br_tcp_server_s {
     void br_tcp_server_close(br_tcp_server_t* srv_);
 
     int br_http_server_init(br_http_server_t* srv_, int port_, void* gen_response_cb_);
-    int br_http_server_resource_add(br_http_server_t* srv_, const char* key,
-            const unsigned char* data_, const size_t size_, int type_);
+    int br_http_server_rsr_add(br_http_server_t* srv_, const char* key,
+            const unsigned char* data_, const size_t size_);
 
 
     /**

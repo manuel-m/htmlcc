@@ -10,13 +10,16 @@
 
 
 typedef struct {
+    const char* source_dir;
+    size_t key_offset;
     FILE* fout;
     size_t nbelem;
     const char* prefix;
 } ctx_s;
 
 
-static int hxd_file(FILE *out_, const char* symname_, const char* filename_) {
+static int hxd_file(FILE *out_, const char* symname_, const char* filename_,
+        const char* key_) {
     int res = 0;
     uint8_t icol = 0;
     size_t sz = 0;
@@ -45,7 +48,7 @@ static int hxd_file(FILE *out_, const char* symname_, const char* filename_) {
             ++icol;
             ++sz;
             icol &= ~QR_NB_COLS;
-            if (!icol)puts("");
+            if (!icol)fprintf(out_, "\n");
         }
         if (sizeof (buffer) != nbelem) {
             fprintf(out_, "\n");
@@ -58,9 +61,11 @@ static int hxd_file(FILE *out_, const char* symname_, const char* filename_) {
 
     /* --> full struct */
     fprintf(out_, "static const mmembed_s %s = {\n", symname_);
-    fprintf(out_, "  .size = %zu;\n", sz);
-    fprintf(out_, "  .data = %s_data;\n", symname_);
-    fprintf(out_, "  .key = \"%s\";\n", filename_);
+    fprintf(out_, "  .sz = %zu,\n", sz);
+    fprintf(out_, "  .data = %s_data,\n", symname_);
+    
+    fprintf(out_, "  .key = \"%s\",\n", key_);
+    
     fprintf(out_, "};\n\n\n\n");
 
 
@@ -98,7 +103,7 @@ static void hxd_onfile(const char *path_, const char *basename_, int level_, voi
     char* symname = NULL;
     if (0 > asprintf(&symname, "%s_%zu", pctx->prefix, pctx->nbelem)) MM_ERR("internal error");
 
-    hxd_file(pctx->fout, symname, fullname);
+    hxd_file(pctx->fout, symname, fullname, fullname + pctx->key_offset);
 
     ++(pctx->nbelem);
 
@@ -118,6 +123,10 @@ static int hxd_footer(ctx_s* pctx_) {
         fprintf(pctx_->fout, "  &%s_%zu,\n",pctx_->prefix,i);
     }
     fprintf(pctx_->fout, "};\n");
+    
+    fprintf(pctx_->fout, "static const size_t hxds_%s_sz = %zu ;\n\n",
+            pctx_->prefix, pctx_->nbelem);
+    
 end:
     return res;
 
@@ -130,21 +139,28 @@ err:
 int main(int argc, char** argv) {
 
     int res = 0;
-    if (3 != argc) goto bad_cmd;
+    if (4 != argc) goto bad_cmd;
+    
+    FILE* fout = fopen(argv[3],"w");
+    
+    if(!fout) MM_GERR("invalid %s",fout);
 
     ctx_s ctx = {
-        .fout = stdout,
+        .source_dir = argv[1],
+        .key_offset = strlen(argv[1]),
+        .fout = fout,
         .nbelem = 0,
         .prefix = argv[2]
     };
 
     hxd_header(&ctx);
 
-    diru_parse(argv[1], 0, NULL, hxd_onfile, &ctx);
+    diru_parse(ctx.source_dir, 0, NULL, hxd_onfile, &ctx);
     
     hxd_footer(&ctx);
 
 end:
+    if(fout)fclose(fout);
     return res;
 
 err:
