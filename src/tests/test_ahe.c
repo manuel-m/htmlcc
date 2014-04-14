@@ -7,15 +7,15 @@
 
 #include "hxd_generated.h"
 
-static br_http_server_t srv;
+static br_http_srv_t srv;
 
-static int on_stats_response(br_http_client_t* c_) {
+static int on_stats_response(br_http_cli_t* c_) {
 
     br_http_resource_t* rsr;
     const char index_url[] = "/index.html";
     const char* url = c_->requested_url;
 
-    const br_http_server_t* srv = c_->m_server;
+    const br_http_srv_t* srv = c_->m_srv;
 
     /* '/' =>  '/index.html' */
     if (0 == strcmp(c_->requested_url, "/")) url = index_url;
@@ -60,8 +60,7 @@ int main(int argc, char **argv) {
         .m_static_resources = hxds_ahe
     };
 
-
-    br_http_server_init(&srv, &http_srv_spec);
+    br_http_srv_init(&srv, &http_srv_spec);
 
     br_run();
     return 0;

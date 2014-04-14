@@ -91,7 +91,7 @@ extern "C" {
     /**
      * http
      */
-    typedef struct br_http_server_s {
+    typedef struct br_http_srv_s {
         struct sockaddr_in m_addr;
         uv_tcp_t m_handler;
         http_parser_settings m_parser_settings;
@@ -100,22 +100,20 @@ extern "C" {
         void* m_gen_response_cb;
         map_t m_resources;
         map_t m_types;
-    } br_http_server_t;
+    } br_http_srv_t;
 
 #define BR_MAX_REQ_URL_LEN 2048
 
-    typedef struct br_http_client_s {
+    typedef struct br_http_cli_s {
         uv_tcp_t m_handle;
         http_parser m_parser;
         uv_write_t m_write_req;
         int m_request_num;
-        br_http_server_t* m_server;
+        br_http_srv_t* m_srv;
         uv_buf_t m_resbuf;
         char requested_url[BR_MAX_REQ_URL_LEN];
-    } br_http_client_t;
+    } br_http_cli_t;
 
-#define BR_HTML 0    
-#define BR_JS 1    
 
     typedef struct br_http_resource_s {
         size_t m_len;
@@ -131,7 +129,7 @@ extern "C" {
     int br_out_tcp_write_string(br_tcp_server_t*, const char*, size_t len_);
 
 
-    typedef int (*br_http_server_parser_cb)(br_http_client_t* cli_);
+    typedef int (*br_http_srv_parser_cb)(br_http_cli_t* cli_);
 
 
     int br_udp_client_add(mmpool_t* cli_pool_, const char* addr_, int port_);
@@ -154,9 +152,9 @@ extern "C" {
         const mmembed_s** m_static_resources;
     } br_http_srv_spec_t;
 
-    int br_http_server_init(br_http_server_t* srv_, const br_http_srv_spec_t* spec_);
+    int br_http_srv_init(br_http_srv_t* srv_, const br_http_srv_spec_t* spec_);
 
-    int br_http_server_rsr_add(br_http_server_t* srv_, const char* key,
+    int br_http_srv_rsr_add(br_http_srv_t* srv_, const char* key,
             const unsigned char* data_, const size_t size_);
 
 

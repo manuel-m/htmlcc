@@ -26,7 +26,7 @@ static const br_http_type_item_t http_hrsr_items[] = {
 };
 
 static void on_http_close(uv_handle_t* handle_) {
-    br_http_client_t* cli = (br_http_client_t*) handle_->data;
+    br_http_cli_t* cli = (br_http_cli_t*) handle_->data;
     MM_INFO("(%5d) connection closed ", cli->m_request_num);
     free(cli->m_resbuf.base);
     free(cli);
@@ -39,10 +39,10 @@ static void on_http_after_write(uv_write_t* req_, int status_) {
 
 
 static int on_headers_complete(http_parser* parser) {
-    br_http_client_t* cli = (br_http_client_t*) parser->data;
+    br_http_cli_t* cli = (br_http_cli_t*) parser->data;
     MM_INFO("(%5d) http message parsed", cli->m_request_num);
 
-    br_http_server_parser_cb response_cb = (br_http_server_parser_cb) cli->m_server->m_gen_response_cb;
+    br_http_srv_parser_cb response_cb = (br_http_srv_parser_cb) cli->m_srv->m_gen_response_cb;
     MM_ASSERT(0 == response_cb(cli));
 
     uv_write(
@@ -55,7 +55,7 @@ static int on_headers_complete(http_parser* parser) {
 }
 
 static int on_url_ready(http_parser* parser, const char *at, size_t length) {
-    br_http_client_t* cli = (br_http_client_t*) parser->data;
+    br_http_cli_t* cli = (br_http_cli_t*) parser->data;
     if (BR_MAX_REQ_URL_LEN <= length) MM_GERR("url too big");
 
     strncpy(cli->requested_url, at, length);
@@ -68,8 +68,8 @@ err:
 
 static void on_http_read(uv_stream_t* handle_, ssize_t nread_, const uv_buf_t* buf_) {
     size_t parsed;
-    br_http_client_t* client = (br_http_client_t*) handle_->data;
-    br_http_server_t* server = client->m_server;
+    br_http_cli_t* client = (br_http_cli_t*) handle_->data;
+    br_http_srv_t* server = client->m_srv;
 
     if (nread_ >= 0) {
         parsed = http_parser_execute(
@@ -88,13 +88,13 @@ static void on_http_read(uv_stream_t* handle_, ssize_t nread_, const uv_buf_t* b
 
 static void on_http_connect(uv_stream_t* handle_, int status_) {
     MM_ASSERT(status_ >= 0);
-    br_http_server_t* server = (br_http_server_t*) handle_->data;
+    br_http_srv_t* server = (br_http_srv_t*) handle_->data;
 
     ++(server->m_request_num);
 
-    br_http_client_t* cli = calloc(1, sizeof (br_http_client_t));
+    br_http_cli_t* cli = calloc(1, sizeof (br_http_cli_t));
     cli->m_request_num = server->m_request_num;
-    cli->m_server = server;
+    cli->m_srv = server;
 
     MM_INFO("(%5d) connection new %p", cli->m_request_num, handle_);
 
@@ -115,7 +115,7 @@ static void on_http_connect(uv_stream_t* handle_, int status_) {
 
 
 
-int br_http_server_init(br_http_server_t* srv_, const br_http_srv_spec_t* spec_) {
+int br_http_srv_init(br_http_srv_t* srv_, const br_http_srv_spec_t* spec_) {
 
     int res = 0;
 
@@ -150,7 +150,7 @@ int br_http_server_init(br_http_server_t* srv_, const br_http_srv_spec_t* spec_)
         for (i = 0; i < spec_->m_static_resources_sz; i++) {
             const mmembed_s* s = spec_->m_static_resources[i];
             MM_INFO("adding %s (%zu)", s->key, s->sz);
-            if(0 > br_http_server_rsr_add(srv_, s->key, s->data, s->sz)) goto err;
+            if(0 > br_http_srv_rsr_add(srv_, s->key, s->data, s->sz)) goto err;
         }
     }
 
@@ -163,7 +163,7 @@ err:
     goto end;
 }
 
-int br_http_server_rsr_add(br_http_server_t* srv_, const char* key_,
+int br_http_srv_rsr_add(br_http_srv_t* srv_, const char* key_,
         const unsigned char* data_, const size_t size_) {
 
     br_http_resource_t* rsr = malloc(sizeof (br_http_resource_t));

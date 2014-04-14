@@ -5,9 +5,9 @@
 #include "mmtrace.h"
 #include "bagride2.h"
 
-static br_http_server_t http_server;
+static br_http_srv_t http_server;
 
-static int on_stats_response(br_http_client_t* c_) {
+static int on_stats_response(br_http_cli_t* c_) {
     
     c_->m_resbuf.len = asprintf(&c_->m_resbuf.base, "%s",
             "HTTP/1.1 200 OK\n"
@@ -35,7 +35,7 @@ int main(int argc, char **argv) {
         .m_static_resources = NULL
     };    
 
-    br_http_server_init(&http_server, &http_srv_spec);
+    br_http_srv_init(&http_server, &http_srv_spec);
     br_run();
     return 0;
 }
