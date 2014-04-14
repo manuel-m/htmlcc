@@ -8,8 +8,8 @@ extern "C" {
 #include "uv.h"
 #include "http_parser.h"
 #include "hashmap.h"    
-
 #include "mmpool.h"    
+#include "hxd.h"
 
 #define br_buf_t uv_buf_t
 #define br_tcp_t uv_tcp_t
@@ -147,7 +147,15 @@ extern "C" {
 
     void br_tcp_server_close(br_tcp_server_t* srv_);
 
-    int br_http_server_init(br_http_server_t* srv_, int port_, void* gen_response_cb_);
+    typedef struct br_http_srv_spec_s {
+        int m_port;
+        void* m_gen_response_cb;
+        const size_t m_static_resources_sz;
+        const mmembed_s** m_static_resources;
+    } br_http_srv_spec_t;
+
+    int br_http_server_init(br_http_server_t* srv_, const br_http_srv_spec_t* spec_);
+
     int br_http_server_rsr_add(br_http_server_t* srv_, const char* key,
             const unsigned char* data_, const size_t size_);
 

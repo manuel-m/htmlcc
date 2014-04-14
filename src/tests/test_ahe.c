@@ -12,24 +12,24 @@ static br_http_server_t srv;
 static int on_stats_response(br_http_client_t* c_) {
 
     br_http_resource_t* rsr;
-    const char index_url[]="/index.html";
+    const char index_url[] = "/index.html";
     const char* url = c_->requested_url;
-    
+
     const br_http_server_t* srv = c_->m_server;
-    
+
     /* '/' =>  '/index.html' */
-    if(0 == strcmp(c_->requested_url,"/")) url = index_url;
+    if (0 == strcmp(c_->requested_url, "/")) url = index_url;
 
     if (MAP_OK != (hashmap_get(srv->m_resources, url, (void**) (&rsr)))) {
         MM_INFO("(%5d) invalid requested url:%s", c_->m_request_num, url);
         hashmap_get(srv->m_resources, "/not_found.html", (void**) (&rsr));
     }
-    
+
     br_http_type_item_t* type = NULL;
     if (MAP_OK != (hashmap_get(srv->m_types, rsr->m_type, (void**) (&type)))) {
         MM_INFO("(%5d) invalid requested type:%s", c_->m_request_num, url);
-    }    
-    
+    }
+
     MM_INFO("(%5d) response id:%s", c_->m_request_num, type->id);
     MM_INFO("(%5d) response type:%s", c_->m_request_num, type->response_type);
 
@@ -45,30 +45,23 @@ static int on_stats_response(br_http_client_t* c_) {
             (int) rsr->m_len,
             rsr->m_data);
 
-   
-    return 0;
-}
 
-static int br_http_load_resources(br_http_server_t* srv_, const mmembed_s* r_[], 
-        size_t sz_){
-
-    size_t i;
-    for(i=0;i<sz_;i++){
-      const mmembed_s* s = r_[i];
-      MM_INFO("adding %s (%zu)", s->key, s->sz);
-      br_http_server_rsr_add(srv_, s->key, s->data, s->sz);   
-    }
-    
     return 0;
 }
 
 int main(int argc, char **argv) {
     (void) argc;
     (void) argv;
-    
-    br_http_server_init(&srv, 9999, on_stats_response);
-    br_http_load_resources(&srv, hxds_ahe, hxds_ahe_sz);
 
+    const br_http_srv_spec_t http_srv_spec = {
+        .m_port = 9999,
+        .m_gen_response_cb = on_stats_response,
+        .m_static_resources_sz = hxds_ahe_sz,
+        .m_static_resources = hxds_ahe
+    };
+
+
+    br_http_server_init(&srv, &http_srv_spec);
 
     br_run();
     return 0;

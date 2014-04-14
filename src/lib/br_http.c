@@ -5,6 +5,7 @@
 #include "mmtrace.h"
 #include "qdirty.h"
 
+
 QD_DECL_STR(html);
 QD_DECL_STR(js);
 QD_DECL_STR(ico);
@@ -112,22 +113,22 @@ static void on_http_connect(uv_stream_t* handle_, int status_) {
     }
 }
 
-int br_http_server_init(br_http_server_t* srv_, int port_, void* gen_response_cb_) {
+
+
+int br_http_server_init(br_http_server_t* srv_, const br_http_srv_spec_t* spec_) {
 
     int res = 0;
 
     srv_->m_parser_settings.on_headers_complete = on_headers_complete;
     srv_->m_parser_settings.on_url = on_url_ready;
-    srv_->m_port = port_;
-    srv_->m_gen_response_cb = gen_response_cb_;
+    srv_->m_port = spec_->m_port;
+    srv_->m_gen_response_cb = spec_->m_gen_response_cb;
     MM_INFO("(%5d) http %ld", srv_->m_port);
     uv_tcp_init(uv_default_loop(), &srv_->m_handler);
     srv_->m_handler.data = srv_;
     MM_ASSERT(0 == uv_ip4_addr("0.0.0.0", srv_->m_port, &srv_->m_addr));
     MM_ASSERT(0 == uv_tcp_bind(&srv_->m_handler, (const struct sockaddr*) &srv_->m_addr));
     MM_ASSERT(0 == uv_listen((uv_stream_t*) & srv_->m_handler, BR_MAX_CONNECTIONS, on_http_connect));
-
-    srv_->m_resources = hashmap_new();
 
     /* file type handling ... static list for now */
     {
@@ -139,6 +140,17 @@ int br_http_server_init(br_http_server_t* srv_, int port_, void* gen_response_cb
             const br_http_type_item_t* p = &http_hrsr_items[i];
             if (MAP_OK != hashmap_put(srv_->m_types, p->id, (any_t) p))
                 MM_GERR("resource add: %s %s", p->id, p->response_type);
+        }
+    }
+
+    if (spec_->m_static_resources) {
+        srv_->m_resources = hashmap_new();
+
+        size_t i;
+        for (i = 0; i < spec_->m_static_resources_sz; i++) {
+            const mmembed_s* s = spec_->m_static_resources[i];
+            MM_INFO("adding %s (%zu)", s->key, s->sz);
+            if(0 > br_http_server_rsr_add(srv_, s->key, s->data, s->sz)) goto err;
         }
     }
 

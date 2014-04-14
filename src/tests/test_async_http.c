@@ -27,8 +27,15 @@ static int on_stats_response(br_http_client_t* c_) {
 int main(int argc, char **argv) {
     (void) argc;
     (void) argv;
+    
+    const br_http_srv_spec_t http_srv_spec = {
+        .m_port = 9999,
+        .m_gen_response_cb = on_stats_response,
+        .m_static_resources_sz = 0,
+        .m_static_resources = NULL
+    };    
 
-    br_http_server_init(&http_server, 9999, on_stats_response);
+    br_http_server_init(&http_server, &http_srv_spec);
     br_run();
     return 0;
 }
