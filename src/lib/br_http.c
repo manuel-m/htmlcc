@@ -148,9 +148,9 @@ int br_http_srv_init(br_http_srv_t* srv_, const br_http_srv_spec_t* spec_) {
 
         size_t i;
         for (i = 0; i < spec_->m_static_resources_sz; i++) {
-            const mmembed_s* s = spec_->m_static_resources[i];
-            MM_INFO("adding %s (%zu)", s->key, s->sz);
-            if(0 > br_http_srv_rsr_add(srv_, s->key, s->data, s->sz)) goto err;
+            const rsr_t* s = spec_->m_static_resources[i];
+            MM_INFO("adding %s (%zu)", s->m_key, s->m_sz);
+            if(0 > br_http_srv_rsr_add(srv_, s->m_key, s->m_data, s->m_sz)) goto err;
         }
     }
 

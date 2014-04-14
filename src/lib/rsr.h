@@ -8,10 +8,11 @@ extern "C" {
 #include <stdint.h>
 
 typedef struct {
-  const size_t sz;
-  const uint8_t* data;
-  const char key[];
-} mmembed_s;
+  const size_t m_sz;
+  const uint8_t* m_data;
+  const char* m_type;
+  const char m_key[];
+} rsr_t;
 
 
 #ifdef	__cplusplus

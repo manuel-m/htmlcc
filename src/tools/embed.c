@@ -60,11 +60,11 @@ static int hxd_file(FILE *out_, const char* symname_, const char* filename_,
     fprintf(out_, "};\n");
 
     /* --> full struct */
-    fprintf(out_, "static const mmembed_s %s = {\n", symname_);
-    fprintf(out_, "  .sz = %zu,\n", sz);
-    fprintf(out_, "  .data = %s_data,\n", symname_);
+    fprintf(out_, "static const rsr_t %s = {\n", symname_);
+    fprintf(out_, "  .m_sz = %zu,\n", sz);
+    fprintf(out_, "  .m_data = %s_data,\n", symname_);
     
-    fprintf(out_, "  .key = \"%s\",\n", key_);
+    fprintf(out_, "  .m_key = \"%s\",\n", key_);
     
     fprintf(out_, "};\n\n\n\n");
 
@@ -82,7 +82,7 @@ err:
 static int hxd_header(ctx_s* pctx_) {
     int res = 0;
     if (!pctx_ || !pctx_->fout) MM_GERR("internal");
-    fprintf(pctx_->fout, "#include \"hxd.h\"\n\n");
+    fprintf(pctx_->fout, "#include \"rsr.h\"\n\n");
 
 end:
     return res;
@@ -116,7 +116,7 @@ static int hxd_footer(ctx_s* pctx_) {
     
     if (!pctx_ || !pctx_->fout || !pctx_->nbelem ) MM_GERR("internal");
     
-    fprintf(pctx_->fout, "static const mmembed_s* hxds_%s[] = {\n",pctx_->prefix);
+    fprintf(pctx_->fout, "static const rsr_t* hxds_%s[] = {\n",pctx_->prefix);
     
     size_t i;
     for(i=0;i<pctx_->nbelem;i++){

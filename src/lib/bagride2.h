@@ -9,7 +9,7 @@ extern "C" {
 #include "http_parser.h"
 #include "hashmap.h"    
 #include "mmpool.h"    
-#include "hxd.h"
+#include "rsr.h"
 
 #define br_buf_t uv_buf_t
 #define br_tcp_t uv_tcp_t
@@ -149,7 +149,7 @@ extern "C" {
         int m_port;
         void* m_gen_response_cb;
         const size_t m_static_resources_sz;
-        const mmembed_s** m_static_resources;
+        const rsr_t** m_static_resources;
     } br_http_srv_spec_t;
 
     int br_http_srv_init(br_http_srv_t* srv_, const br_http_srv_spec_t* spec_);
