@@ -115,12 +115,6 @@ extern "C" {
     } br_http_cli_t;
 
 
-    typedef struct br_http_resource_s {
-        size_t m_len;
-        const char* m_type;
-        const unsigned char* m_data;
-    } br_http_resource_t;
-
     typedef struct br_http_type_item_s {
         const char* id;
         const char* response_type;
@@ -154,8 +148,7 @@ extern "C" {
 
     int br_http_srv_init(br_http_srv_t* srv_, const br_http_srv_spec_t* spec_);
 
-    int br_http_srv_rsr_add(br_http_srv_t* srv_, const char* key,
-            const unsigned char* data_, const size_t size_);
+    int br_http_srv_rsr_add(br_http_srv_t* srv_, const rsr_t* rsr_);
 
 
     /**

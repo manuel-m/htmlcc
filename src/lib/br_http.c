@@ -4,7 +4,7 @@
 #include "bagride2.h"
 #include "mmtrace.h"
 #include "qdirty.h"
-
+#include "sub0.h"
 
 QD_DECL_STR(html);
 QD_DECL_STR(js);
@@ -22,7 +22,7 @@ static const br_http_type_item_t http_hrsr_items[] = {
     {
         .id = QD_STR(ico),
         .response_type = "text/html" /* TODO */
-    },    
+    },
 };
 
 static void on_http_close(uv_handle_t* handle_) {
@@ -36,7 +36,6 @@ static void on_http_after_write(uv_write_t* req_, int status_) {
     MM_ASSERT(status_ >= 0);
     uv_close((uv_handle_t*) req_->handle, on_http_close);
 }
-
 
 static int on_headers_complete(http_parser* parser) {
     br_http_cli_t* cli = (br_http_cli_t*) parser->data;
@@ -113,8 +112,6 @@ static void on_http_connect(uv_stream_t* handle_, int status_) {
     }
 }
 
-
-
 int br_http_srv_init(br_http_srv_t* srv_, const br_http_srv_spec_t* spec_) {
 
     int res = 0;
@@ -148,9 +145,9 @@ int br_http_srv_init(br_http_srv_t* srv_, const br_http_srv_spec_t* spec_) {
 
         size_t i;
         for (i = 0; i < spec_->m_static_resources_sz; i++) {
-            const rsr_t* s = spec_->m_static_resources[i];
-            MM_INFO("adding %s (%zu)", s->m_key, s->m_sz);
-            if(0 > br_http_srv_rsr_add(srv_, s->m_key, s->m_data, s->m_sz)) goto err;
+            const rsr_t* prsr = spec_->m_static_resources[i];
+            MM_INFO("adding %s (%zu)", prsr->m_key, prsr->m_sz);
+            if (0 > br_http_srv_rsr_add(srv_, prsr)) goto err;
         }
     }
 
@@ -163,36 +160,22 @@ err:
     goto end;
 }
 
-int br_http_srv_rsr_add(br_http_srv_t* srv_, const char* key_,
-        const unsigned char* data_, const size_t size_) {
+int br_http_srv_rsr_add(br_http_srv_t* srv_, const rsr_t* rsr_) {
 
-    br_http_resource_t* rsr = malloc(sizeof (br_http_resource_t));
-    if (!rsr) MM_GERR("resource container allocation");
-    rsr->m_data = data_;
-    rsr->m_len = size_;
+    const char* suffix = sub0_path_suffix(rsr_->m_key);
+    if (NULL == suffix) MM_GERR("static resource without suffix %s", rsr_->m_key);
 
-    /* type extract from key suffix
-     * -> search suffix from end 
-     */
-    const char* p = key_ + strlen(key_);
-    const char* end = p;
-    rsr->m_type = NULL;
-    do {
-        if ((*p == '.') && (p != end)) {
-            rsr->m_type = p + 1;
-            MM_INFO("added type: %s %s", key_, rsr->m_type);
-            break;
-        }
-        --p;
-    } while (p != key_);
+    /* check if type is handled */
+    br_http_type_item_t* type = NULL;
+    if (MAP_OK != (hashmap_get(srv_->m_types, suffix, (void**) (&type))))
+        MM_GERR("static resource not handled (suffix) %s (%s)", rsr_->m_key);
 
-    if (!rsr->m_type) MM_GERR("invalid resource: %d", key_);
 
-    if (MAP_OK != hashmap_put(srv_->m_resources, key_, rsr)) MM_GERR("resource add: %d", key_);
+    if (MAP_OK != hashmap_put(srv_->m_resources, rsr_->m_key, (any_t) rsr_))
+        MM_GERR("resource add: %s", rsr_->m_key);
     return 0;
 
 err:
-
     return -1;
 }
 

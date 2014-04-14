@@ -63,8 +63,27 @@ static int hxd_file(FILE *out_, const char* symname_, const char* filename_,
     fprintf(out_, "static const rsr_t %s = {\n", symname_);
     fprintf(out_, "  .m_sz = %zu,\n", sz);
     fprintf(out_, "  .m_data = %s_data,\n", symname_);
-    
     fprintf(out_, "  .m_key = \"%s\",\n", key_);
+
+    
+//    /* type extract from filename suffix
+//     * -> search suffix from end 
+//     */
+//    {
+//        const char* p = key_ + strlen(key_);
+//        const char* end = p;
+//        const char* type = NULL;
+//        do {
+//            if ((*p == '.') && (p != end)) {
+//                type = p + 1;
+//                break;
+//            }
+//            --p;
+//        } while (p != type);
+//
+//        if (!type) MM_GERR("invalid filename, can't compute type %s", filename_);
+//        fprintf(out_, "  .m_type = \"%s\",\n", type);
+//    }
     
     fprintf(out_, "};\n\n\n\n");
 

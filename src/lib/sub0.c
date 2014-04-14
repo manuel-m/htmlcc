@@ -33,3 +33,17 @@ sub0_substring_t* sub0_line_next_substring(sub0_line_t* _io) {
     }
     return NULL;
 }
+
+const char* sub0_path_suffix(const char* path_) {
+    const char* p = path_ + strlen(path_);
+    const char* end = p;
+    const char* suffix = NULL;
+    do {
+        if ((*p == '.') && (p != end)) {
+            suffix = p + 1;
+            return suffix;
+        }
+        --p;
+    } while (p != path_);
+    return NULL;
+} 

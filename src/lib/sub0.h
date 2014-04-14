@@ -1,6 +1,8 @@
 #ifndef _BR_PARSE_H
 #define	_BR_PARSE_H
 
+/* VERSION 2 */
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -26,6 +28,8 @@ extern "C" {
     int sub0_line_prepare(const char* _start, size_t _n, char _sep, sub0_line_t* _io);
 
     sub0_substring_t* sub0_line_next_substring(sub0_line_t* _io);
+    
+    const char* sub0_path_suffix(const char* path_);
     
     
 #ifdef __cplusplus

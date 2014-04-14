@@ -10,7 +10,7 @@ extern "C" {
 typedef struct {
   const size_t m_sz;
   const uint8_t* m_data;
-  const char* m_type;
+//  const char* m_type;
   const char m_key[];
 } rsr_t;
 
