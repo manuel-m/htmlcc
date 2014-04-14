@@ -8,7 +8,7 @@
 static br_http_srv_t http_server;
 
 static int on_stats_response(br_http_cli_t* c_) {
-    
+
     c_->m_resbuf.len = asprintf(&c_->m_resbuf.base, "%s",
             "HTTP/1.1 200 OK\n"
             "Date: Thu, 19 Feb 2009 12:27:04 GMT\n"
@@ -17,7 +17,7 @@ static int on_stats_response(br_http_cli_t* c_) {
             "ETag: \"56d-9989200-1132c580\"\n"
             "Content-Type: text/html\n"
             "Accept-Ranges: bytes\n"
-            "Connection: close\n"            
+            "Connection: close\n"
             "Content-Length: 15\n"
             "\n"
             "sdfkjsdnbfkjbsf");
@@ -27,15 +27,22 @@ static int on_stats_response(br_http_cli_t* c_) {
 int main(int argc, char **argv) {
     (void) argc;
     (void) argv;
-    
+    int res = 0;
+
     br_http_srv_spec_t http_srv_spec = {
         .m_port = 9999,
         .m_gen_response_cb = on_stats_response,
         .m_static_resources_sz = 0,
         .m_static_resources = NULL
-    };    
+    };
 
-    br_http_srv_init(&http_server, &http_srv_spec);
+    if (0 > br_http_srv_init(&http_server, &http_srv_spec)) goto err;
     br_run();
-    return 0;
+
+end:
+    return res;
+
+err:
+    res = -1;
+    goto end;
 }

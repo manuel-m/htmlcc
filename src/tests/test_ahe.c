@@ -11,12 +11,12 @@
 static br_http_srv_t srv;
 
 
-const char rsr_404[]="/404.html";
-
+const char rsr_404[] = "/404.html";
 
 int main(int argc, char **argv) {
     (void) argc;
     (void) argv;
+    int res = 0;
 
     const br_http_srv_spec_t http_srv_spec = {
         .m_port = 9999,
@@ -26,8 +26,15 @@ int main(int argc, char **argv) {
         .m_rsr_404 = rsr_404
     };
 
-    br_http_srv_init(&srv, &http_srv_spec);
+    if (0 > br_http_srv_init(&srv, &http_srv_spec)) goto err;
 
     br_run();
-    return 0;
+
+end:
+    return res;
+
+err:
+    res = -1;
+    goto end;
+
 }
