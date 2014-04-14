@@ -56,7 +56,8 @@ add_library(${LIBHC_A}
             src/lib/sub0.c
             src/lib/hashmap.c
             src/lib/diru.c
-            src/lib/bagride2.c)
+            src/lib/bagride2.c
+            src/lib/br_http.c)
             
 
 add_executable (${TEST_ASYNC_HTTP_EXE} src/tests/test_async_http.c)  

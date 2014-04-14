@@ -49,18 +49,26 @@ static int on_stats_response(br_http_client_t* c_) {
     return 0;
 }
 
+static int br_http_load_resources(br_http_server_t* srv_, const mmembed_s* r_[], 
+        size_t sz_){
+
+    size_t i;
+    for(i=0;i<sz_;i++){
+      const mmembed_s* s = r_[i];
+      MM_INFO("adding %s (%zu)", s->key, s->sz);
+      br_http_server_rsr_add(srv_, s->key, s->data, s->sz);   
+    }
+    
+    return 0;
+}
+
 int main(int argc, char **argv) {
     (void) argc;
     (void) argv;
     
     br_http_server_init(&srv, 9999, on_stats_response);
-    
-    size_t i;
-    for(i=0;i<hxds_ahe_sz;i++){
-      const mmembed_s* s = hxds_ahe[i];
-      MM_INFO("(INIT) adding %s (%zu)", s->key, s->sz);
-      br_http_server_rsr_add(&srv, s->key, s->data, s->sz);   
-    }
+    br_http_load_resources(&srv, hxds_ahe, hxds_ahe_sz);
+
 
     br_run();
     return 0;

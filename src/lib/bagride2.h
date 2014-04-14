@@ -18,6 +18,7 @@ extern "C" {
 #define BR_MAX_CONNECTIONS 64
 #define BR_MAX_ADDR_SIZE 2048
 
+    void on_alloc_buffer(uv_handle_t *h_, size_t suggested_sz_, uv_buf_t* buf_);
 
     /**
      * tcp
