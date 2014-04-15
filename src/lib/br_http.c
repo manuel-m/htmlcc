@@ -5,6 +5,7 @@
 #include "mmtrace.h"
 #include "qdirty.h"
 #include "sub0.h"
+#include "favicon.h"
 
 QD_DECL_STR(html);
 QD_DECL_STR(js);
@@ -27,7 +28,7 @@ static const br_http_type_item_t http_hrsr_items[] = {
     {
         .id = QD_STR(png),
         .response_type = "image/png"
-    },    
+    },
 };
 
 static void on_http_close(uv_handle_t* handle_) {
@@ -132,8 +133,8 @@ int br_http_srv_init(br_http_srv_t* srv_, const br_http_srv_spec_t* spec_) {
     MM_ASSERT(0 == uv_ip4_addr("0.0.0.0", srv_->m_port, &srv_->m_addr));
     MM_ASSERT(0 == uv_tcp_bind(&srv_->m_handler, (const struct sockaddr*) &srv_->m_addr));
     MM_ASSERT(0 == uv_listen((uv_stream_t*) & srv_->m_handler, BR_MAX_CONNECTIONS, on_http_connect));
-    
-    if(NULL==spec_->m_rsr_404) MM_GERR("missing 404 definition");
+
+    if (NULL == spec_->m_rsr_404) MM_GERR("missing 404 definition");
 
     /* file type handling ... static list for now */
     {
@@ -150,6 +151,9 @@ int br_http_srv_init(br_http_srv_t* srv_, const br_http_srv_spec_t* spec_) {
 
     if (spec_->m_static_resources) {
         srv_->m_resources = hashmap_new();
+
+        /* favicon.ico */
+        if (0 > br_http_srv_rsr_add(srv_, &rsr_favicon)) goto err;
 
         size_t i;
         for (i = 0; i < spec_->m_static_resources_sz; i++) {
@@ -205,28 +209,40 @@ int on_stats_response_generic(br_http_cli_t* c_) {
     }
     const char* suffix = sub0_path_suffix(url);
     br_http_type_item_t* type = NULL;
-    
+
     if (suffix) {
         if (MAP_OK != (hashmap_get(srv->m_types, suffix, (void**) (&type)))) {
             MM_INFO("(%5d) invalid requested type:%s", c_->m_request_num, url);
         }
     }
     /* fallback ... no type detected ... => html */
-    if(NULL == type) hashmap_get(srv->m_types, "html", (void**) (&type));
+    if (NULL == type) hashmap_get(srv->m_types, "html", (void**) (&type));
 
     MM_INFO("(%5d) response type:%s %s", c_->m_request_num, type->id, type->response_type);
-    
-    c_->m_resbuf.len = asprintf(&c_->m_resbuf.base,
+
+    char* header_value = NULL;
+    size_t header_value_sz = 0;
+
+    header_value_sz = asprintf(&header_value,
             "HTTP/1.1 200 OK\r\n"
             "Server: htmlcc/0.1\r\n"
             "Content-Type: %s\r\n"
             "Connection: close\r\n"
             "Content-Length: %zu\r\n"
-            "\r\n"
-            "%s",
+            "\r\n",
             type->response_type,
-            rsr->m_sz,
-            rsr->m_data);
+            rsr->m_sz);
+
+    /**
+     * TODO
+     * the intermediated malloc shall be avoided
+     */
+    c_->m_resbuf.len = rsr->m_sz + header_value_sz;
+    c_->m_resbuf.base = malloc(c_->m_resbuf.len);
+    strcpy(c_->m_resbuf.base, header_value);
+    free(header_value);
+
+    memcpy(c_->m_resbuf.base + header_value_sz, rsr->m_data, rsr->m_sz);
 
     return 0;
 }
