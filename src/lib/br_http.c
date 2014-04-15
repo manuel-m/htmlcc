@@ -9,6 +9,7 @@
 QD_DECL_STR(html);
 QD_DECL_STR(js);
 QD_DECL_STR(ico);
+QD_DECL_STR(png);
 
 static const br_http_type_item_t http_hrsr_items[] = {
     {
@@ -21,8 +22,12 @@ static const br_http_type_item_t http_hrsr_items[] = {
     },
     {
         .id = QD_STR(ico),
-        .response_type = "text/html" /* TODO */
+        .response_type = "image/x-icon"
     },
+    {
+        .id = QD_STR(png),
+        .response_type = "image/png"
+    },    
 };
 
 static void on_http_close(uv_handle_t* handle_) {
