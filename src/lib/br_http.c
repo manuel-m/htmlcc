@@ -152,15 +152,21 @@ int br_http_srv_init(br_http_srv_t* srv_, const br_http_srv_spec_t* spec_) {
     if (spec_->m_static_resources) {
         srv_->m_resources = hashmap_new();
 
-        /* favicon.ico */
-        if (0 > br_http_srv_rsr_add(srv_, &rsr_favicon)) goto err;
-
         size_t i;
         for (i = 0; i < spec_->m_static_resources_sz; i++) {
             const rsr_t* prsr = spec_->m_static_resources[i];
             MM_INFO("adding %s (%zu)", prsr->m_key, prsr->m_sz);
             if (0 > br_http_srv_rsr_add(srv_, prsr)) goto err;
         }
+
+        /* favicon.ico 
+         * -> we add if not defined */
+        {
+            const rsr_t* prsr = NULL;
+            hashmap_get(srv_->m_resources, rsr_favicon.m_key, (void**) (&prsr));
+            if (!prsr) if (0 > br_http_srv_rsr_add(srv_, &rsr_favicon))  goto err;
+        }
+
     }
 
 end:
