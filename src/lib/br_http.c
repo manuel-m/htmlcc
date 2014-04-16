@@ -11,25 +11,25 @@ QD_DECL_STR(html);
 QD_DECL_STR(js);
 QD_DECL_STR(ico);
 QD_DECL_STR(png);
+QD_DECL_STR(css);
+QD_DECL_STR(jpg);
+QD_DECL_STR(gif);
+
+#define BR_HTML_HEADER_TYPE(BR_TYPENAME, BR_TYPESTRING)\
+ {.id=QD_STR(BR_TYPENAME),.response_type=BR_TYPESTRING}
 
 static const br_http_type_item_t http_hrsr_items[] = {
-    {
-        .id = QD_STR(html),
-        .response_type = "text/html"
-    },
-    {
-        .id = QD_STR(js),
-        .response_type = "text/javascript"
-    },
-    {
-        .id = QD_STR(ico),
-        .response_type = "image/x-icon"
-    },
-    {
-        .id = QD_STR(png),
-        .response_type = "image/png"
-    },
+    
+    BR_HTML_HEADER_TYPE(html,"text/html"),
+    BR_HTML_HEADER_TYPE(js,"text/javascript"),
+    BR_HTML_HEADER_TYPE(ico,"image/x-icon"),
+    BR_HTML_HEADER_TYPE(png,"image/png"),
+    BR_HTML_HEADER_TYPE(css,"text/css"),
+    BR_HTML_HEADER_TYPE(jpg,"image/jpeg"),
+    BR_HTML_HEADER_TYPE(gif,"image/gif"),
+
 };
+#undef BR_HTML_HEADER_TYPE
 
 static void on_http_close(uv_handle_t* handle_) {
     br_http_cli_t* cli = (br_http_cli_t*) handle_->data;
@@ -233,6 +233,7 @@ int on_stats_response_generic(br_http_cli_t* c_) {
             "HTTP/1.1 200 OK\r\n"
             "Server: htmlcc/0.1\r\n"
             "Content-Type: %s\r\n"
+            "X-Content-Type-Options: nosniff \r\n"
             "Connection: close\r\n"
             "Content-Length: %zu\r\n"
             "\r\n",
