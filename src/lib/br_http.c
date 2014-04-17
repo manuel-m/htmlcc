@@ -6,6 +6,7 @@
 #include "qdirty.h"
 #include "sub0.h"
 #include "favicon.h"
+#include "strcompat.h"
 
 QD_DECL_STR(html);
 QD_DECL_STR(js);
@@ -43,12 +44,6 @@ static void on_http_after_write(uv_write_t* req_, int status_) {
     uv_close((uv_handle_t*) req_->handle, on_http_close);
 }
 
-static int on_headers_complete(http_parser* parser_) {
-    br_http_cli_t* cli = (br_http_cli_t*) parser_->data;
-    MM_INFO("(%5d) http header parsed", cli->m_request_num);
-    return 0;
-}
-
 static int on_body(http_parser *parser_, const char *p_, size_t sz_) {
     br_http_cli_t* cli = (br_http_cli_t*) parser_->data;
     char buf[2048];
@@ -59,18 +54,52 @@ static int on_body(http_parser *parser_, const char *p_, size_t sz_) {
     return 0;
 }
 
-static int on_header_value(http_parser *parser_, const char *p_, size_t sz_) {
-    br_http_cli_t* cli = (br_http_cli_t*) parser_->data;
-    char buf[2048];
-    memcpy(buf, p_, (sz_ < (sizeof (buf))) ? sz_ : (sizeof (buf) - 1));
-    buf[sz_] = '\0';
-    MM_INFO("(%5d) header_value_size,%d ", cli->m_request_num, sz_);
-    MM_INFO("(%5d) header_value,%s ", cli->m_request_num, buf);
+#define BR_HTTP_GET_m                                                          \
+    br_http_cli_t* cli = (br_http_cli_t*) p_->data;                            \
+    struct message_s *m = &cli->pub.m_mess;
+
+static int request_url_cb(http_parser *p_, const char *buf_, size_t sz_) {
+    BR_HTTP_GET_m
+    strlncat(m->request_url, sizeof (m->request_url), buf_, sz_);
+    MM_INFO("(%5d) %s", cli->m_request_num, cli->pub.m_mess.request_url);
     return 0;
 }
 
-static int on_message_complete(http_parser* parser) {
-    br_http_cli_t* cli = (br_http_cli_t*) parser->data;
+static int header_field_cb(http_parser *p_, const char *buf_, size_t sz_) {
+    BR_HTTP_GET_m
+    if (m->last_header_element != BR_HEADER_FIELD) m->num_headers++;
+    strlncat(m->headers[m->num_headers - 1][0], sizeof (m->headers[m->num_headers - 1][0]), buf_,   sz_);
+    m->last_header_element = BR_HEADER_FIELD;
+    return 0;
+}
+
+static int header_value_cb(http_parser *p_, const char *buf_, size_t sz_) {
+    BR_HTTP_GET_m
+    strlncat(m->headers[m->num_headers - 1][1],
+            sizeof (m->headers[m->num_headers - 1][1]), buf_, sz_);
+    m->last_header_element = BR_HEADER_VALUE;
+    return 0;
+}
+
+static int message_begin_cb(http_parser *p_) {
+    BR_HTTP_GET_m
+    m->message_begin_cb_called = 1;
+    return 0;
+}
+
+static int on_headers_complete(http_parser* p_) {
+    BR_HTTP_GET_m
+    m->method = p_->method;
+    m->status_code = p_->status_code;
+    m->http_major = p_->http_major;
+    m->http_minor = p_->http_minor;
+    m->headers_complete_cb_called = 1;
+    m->should_keep_alive = http_should_keep_alive(p_);
+    return 0;
+}
+
+static int message_complete_cb(http_parser* p_) {
+    BR_HTTP_GET_m
     MM_INFO("(%5d) http_message_complete", cli->m_request_num);
 
     br_http_srv_parser_cb response_cb = (br_http_srv_parser_cb) cli->m_srv->m_gen_response_cb;
@@ -82,22 +111,20 @@ static int on_message_complete(http_parser* parser) {
             &cli->m_resbuf,
             1,
             on_http_after_write);
+    
+    m->message_complete_cb_called = 1;
     return 0;
 }
 
-static int on_url_ready(http_parser* parser, const char *at, size_t length) {
-    br_http_cli_t* cli = (br_http_cli_t*) parser->data;
-    if (BR_MAX_REQ_URL_LEN <= length) MM_GERR("url too big");
-
-    strncpy(cli->pub.requested_url, at, length);
-    cli->pub.requested_url[length] = '\0';
-    MM_INFO("(%5d) %s", cli->m_request_num, cli->pub.requested_url);
-    return 0;
-err:
-    return 1;
+static int response_status_cb (http_parser *p_, const char *buf_, size_t sz_)
+{
+    BR_HTTP_GET_m
+    strlncat(m->response_status, sizeof(m->response_status), buf_, sz_);
+  return 0;
 }
 
 static void on_http_read(uv_stream_t* handle_, ssize_t nread_, const uv_buf_t* buf_) {
+    
     size_t parsed;
     br_http_cli_t* cli = (br_http_cli_t*) handle_->data;
     br_http_srv_t* srv = cli->m_srv;
@@ -144,112 +171,23 @@ static void on_http_connect(uv_stream_t* handle_, int status_) {
     }
 }
 
-//static int request_path_cb(http_parser *parser_, const char *p_, size_t sz_) {
-//    br_http_cli_t* cli = (br_http_cli_t*) parser_->data;
-//    strncat(cli->pub.m_mess.request_path, p_, sz_);
-//    return 0;
-//}
-//
-//int
-//request_uri_cb (http_parser *parser, const char *p, size_t len)
-//{
-//  assert(parser);
-//  strncat(messages[num_messages].request_uri, p, len);
-//  return 0;
-//}
-//
-//int
-//query_string_cb (http_parser *parser, const char *p, size_t len)
-//{
-//  assert(parser);
-//  strncat(messages[num_messages].query_string, p, len);
-//  return 0;
-//}
-//
-//int
-//fragment_cb (http_parser *parser, const char *p, size_t len)
-//{
-//  assert(parser);
-//  strncat(messages[num_messages].fragment, p, len);
-//  return 0;
-//}
-//
-//int
-//header_field_cb (http_parser *parser, const char *p, size_t len)
-//{
-//  assert(parser);
-//  struct message *m = &messages[num_messages];
-//
-//  if (m->last_header_element != FIELD)
-//    m->num_headers++;
-//
-//  strncat(m->headers[m->num_headers-1][0], p, len);
-//
-//  m->last_header_element = FIELD;
-//
-//  return 0;
-//}
-//
-//int
-//header_value_cb (http_parser *parser, const char *p, size_t len)
-//{
-//  assert(parser);
-//  struct message *m = &messages[num_messages];
-//
-//  strncat(m->headers[m->num_headers-1][1], p, len);
-//
-//  m->last_header_element = VALUE;
-//
-//  return 0;
-//}
-//
-//int
-//body_cb (http_parser *parser, const char *p, size_t len)
-//{
-//  assert(parser);
-//  strncat(messages[num_messages].body, p, len);
-// // printf("body_cb: '%s'\n", requests[num_messages].body);
-//  return 0;
-//}
-//
-//int
-//message_complete_cb (http_parser *parser)
-//{
-//  messages[num_messages].method = parser->method;
-//  messages[num_messages].status_code = parser->status_code;
-//
-//  messages[num_messages].message_complete_cb_called = TRUE;
-//
-//  num_messages++;
-//  return 0;
-//}
-//
-//int
-//message_begin_cb (http_parser *parser)
-//{
-//  assert(parser);
-//  messages[num_messages].message_begin_cb_called = TRUE;
-//  return 0;
-//}
-//
-//int
-//headers_complete_cb (http_parser *parser)
-//{
-//  assert(parser);
-//  messages[num_messages].headers_complete_cb_called = TRUE;
-//  return 0;
-//}
-
-
 
 int br_http_srv_init(br_http_srv_t* srv_, const br_http_srv_spec_t* spec_) {
 
     int res = 0;
-    srv_->m_parser_settings.on_header_value = on_header_value;
-    srv_->m_parser_settings.on_headers_complete = on_headers_complete;
-    srv_->m_parser_settings.on_message_complete = on_message_complete;
-    srv_->m_parser_settings.on_url = on_url_ready;
-    srv_->m_parser_settings.on_body = on_body;
+    http_parser_settings *settings =  &srv_->m_parser_settings;
+    
+    settings->on_header_field = header_field_cb;
+    settings->on_header_value = header_value_cb;
+    settings->on_url = request_url_cb;
+    settings->on_message_begin = message_begin_cb;
+    settings->on_status = response_status_cb;
+    
+    settings->on_headers_complete = on_headers_complete;
+    settings->on_message_complete = message_complete_cb;
+    
+    settings->on_body = on_body;
+    
     srv_->m_port = spec_->m_port;
     srv_->m_gen_response_cb = spec_->m_gen_response_cb;
     srv_->m_rsr_404 = spec_->m_rsr_404;
@@ -282,7 +220,7 @@ int br_http_srv_init(br_http_srv_t* srv_, const br_http_srv_spec_t* spec_) {
         for (i = 0; i < spec_->m_static_resources->m_sz; i++) {
             const rsr_t* prsr = spec_->m_static_resources->m_array[i];
             MM_INFO("adding %s (%zu)", prsr->m_key, prsr->m_sz);
-            if (0 > br_http_srv_rsr_add(srv_, prsr)) goto err;
+            if (0 > br_http_srv_static_rsr_add(srv_, prsr)) goto err;
         }
 
         /* favicon.ico 
@@ -290,9 +228,8 @@ int br_http_srv_init(br_http_srv_t* srv_, const br_http_srv_spec_t* spec_) {
         {
             const rsr_t* prsr = NULL;
             hashmap_get(srv_->m_resources, rsr_favicon.m_key, (void**) (&prsr));
-            if (!prsr) if (0 > br_http_srv_rsr_add(srv_, &rsr_favicon)) goto err;
+            if (!prsr) if (0 > br_http_srv_static_rsr_add(srv_, &rsr_favicon)) goto err;
         }
-
     }
 
 end:
@@ -304,7 +241,7 @@ err:
     goto end;
 }
 
-int br_http_srv_rsr_add(br_http_srv_t* srv_, const rsr_t* rsr_) {
+int br_http_srv_static_rsr_add(br_http_srv_t* srv_, const rsr_t* rsr_) {
 
     const char* suffix = sub0_path_suffix(rsr_->m_key);
     if (NULL == suffix) MM_GERR("static resource without suffix %s", rsr_->m_key);
@@ -327,7 +264,7 @@ int on_stats_response_generic(br_http_cli_t* c_) {
 
     rsr_t* rsr;
     const char index_url[] = "/index.html";
-    const char* url = c_->pub.requested_url;
+    const char* url = c_->pub.m_mess.request_url;
 
     const br_http_srv_t* srv = c_->m_srv;
 
