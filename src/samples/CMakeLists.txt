@@ -1,1 +1,2 @@
 add_subdirectory(presentation)
+add_subdirectory(tinycontrol)

@@ -104,6 +104,8 @@ extern "C" {
     } br_http_srv_t;
 
 #define BR_MAX_REQ_URL_LEN 2048
+#define BR_MAX_HEADERS 10
+#define BR_MAX_ELEMENT_SIZE 500
 
     typedef struct br_http_cli_s {
         uv_tcp_t m_handle;
@@ -112,9 +114,38 @@ extern "C" {
         int m_request_num;
         br_http_srv_t* m_srv;
         uv_buf_t m_resbuf;
-        char requested_url[BR_MAX_REQ_URL_LEN];
-    } br_http_cli_t;
 
+        struct {
+            char requested_url[BR_MAX_REQ_URL_LEN];
+
+            struct message_s {
+                const char *name; // for debugging purposes
+                const char *raw;
+                enum http_parser_type type;
+                int method;
+                int status_code;
+                char request_path[BR_MAX_ELEMENT_SIZE];
+                char request_uri[BR_MAX_ELEMENT_SIZE];
+                char fragment[BR_MAX_ELEMENT_SIZE];
+                char query_string[BR_MAX_ELEMENT_SIZE];
+                char body[BR_MAX_ELEMENT_SIZE];
+                int num_headers;
+
+                enum {
+                    NONE = 0, FIELD, VALUE
+                } last_header_element;
+                char headers [BR_MAX_HEADERS][2][BR_MAX_ELEMENT_SIZE];
+                int should_keep_alive;
+                int message_begin_cb_called;
+                int headers_complete_cb_called;
+                int message_complete_cb_called;
+            } m_mess;
+
+        } pub;
+
+
+
+    } br_http_cli_t;
 
     typedef struct br_http_type_item_s {
         const char* id;

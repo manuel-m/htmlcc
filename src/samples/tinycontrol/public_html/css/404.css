@@ -1,0 +1,15 @@
+body {
+color:red;
+background-color:black;
+background-position:center top;
+/*background-image:url(/images/guru_meditation.gif);*/
+background-repeat:no-repeat;
+text-align: center;
+vertical-align:central;
+}
+
+p {
+  height:300px;
+  line-height:300px;
+  font-size: Large;
+}

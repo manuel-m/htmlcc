@@ -1,3 +1,10 @@
+
+set(PRESENTATION htmlcc_doc)
+
+if (CMAKE_BUILD_TYPE MATCHES Debug)
+  set(PRESENTATION "${PRESENTATION}_d")
+endif (CMAKE_BUILD_TYPE MATCHES Debug)
+
 set(RSR_H ${GEN_DIR}/hxd_htmlcc_doc.h)
 set(RSR_IN ${CMAKE_CURRENT_SOURCE_DIR}/public_html)
 
