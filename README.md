@@ -26,4 +26,4 @@ Build instructions
 Sample code
 ===========
 
-[test_ahe](https://github.com/manuel-m/htmlcc/blob/master/src/tests/test_ahe.c)
+[htmlcc_doc](https://github.com/manuel-m/htmlcc/blob/master/src/samples/presentation/main.c)

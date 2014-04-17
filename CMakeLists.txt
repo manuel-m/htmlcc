@@ -30,7 +30,7 @@ set(LIBRARY_OUTPUT_PATH ${DIST_DIR})
 set(RSR_EMBEDER_EXE embed)
 set(TEST_RSR_EMBEDER_EXE test_embedfile)
 set(TEST_ASYNC_HTTP_EXE test_async_http)
-set(TEST_AHE_EXE test_ahe)
+set(PRESENTATION htmlcc_doc)
 set(TEST_HASHMAP_EXE test_hashmap)
 set(TEST_RECURSE_DIR_EXE test_recurse_dir)
 
@@ -38,7 +38,7 @@ if (CMAKE_BUILD_TYPE MATCHES Debug)
   set(RSR_EMBEDER_EXE "${RSR_EMBEDER_EXE}_d")
   set(TEST_RSR_EMBEDER_EXE "${TEST_RSR_EMBEDER_EXE}_d")
   set(TEST_ASYNC_HTTP_EXE "${TEST_ASYNC_HTTP_EXE}_d")
-  set(TEST_AHE_EXE "${TEST_AHE_EXE}_d")
+  set(PRESENTATION "${PRESENTATION}_d")
   set(TEST_HASHMAP_EXE "${TEST_HASHMAP_EXE}_d")
   set(TEST_RECURSE_DIR_EXE "${TEST_RECURSE_DIR_EXE}_d")
 endif (CMAKE_BUILD_TYPE MATCHES Debug)
@@ -71,16 +71,18 @@ add_executable (${RSR_EMBEDER_EXE} src/tools/embed.c)
 target_link_libraries(${RSR_EMBEDER_EXE} ${LIBHC_A})
 
 
-set(RSR_H ${GEN_DIR}/hxd_generated.h)
-set(RSR_IN ${CMAKE_CURRENT_SOURCE_DIR}/doc/public_html)
+add_subdirectory(src/samples)
 
-add_custom_target(genxxx
-                  COMMAND ${RSR_EMBEDER_EXE} ${RSR_IN} ahe ${RSR_H}
-                  DEPENDS ${RSR_EMBEDER_EXE})
-
-add_executable (${TEST_AHE_EXE} src/tests/test_ahe.c)
-target_link_libraries (${TEST_AHE_EXE} ${LIBHC_A} ${UV_A} -lpthread)
-add_dependencies(${TEST_AHE_EXE} genxxx)
+#set(RSR_H ${GEN_DIR}/hxd_htmlcc_doc.h)
+#set(RSR_IN ${CMAKE_CURRENT_SOURCE_DIR}/doc/public_html)
+#
+#add_custom_target(gen_htmlcc_doc
+#                  COMMAND ${RSR_EMBEDER_EXE} ${RSR_IN} htmlcc_doc ${RSR_H}
+#                  DEPENDS ${RSR_EMBEDER_EXE})
+#
+#add_executable (${PRESENTATION} src/samples/presentation/main.c)
+#target_link_libraries (${PRESENTATION} ${LIBHC_A} ${UV_A} -lpthread)
+#add_dependencies(${PRESENTATION} gen_htmlcc_doc)
 
 
 
