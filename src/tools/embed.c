@@ -64,26 +64,6 @@ static int hxd_file(FILE *out_, const char* symname_, const char* filename_,
     fprintf(out_, "  .m_sz = %zu,\n", sz);
     fprintf(out_, "  .m_data = %s_data,\n", symname_);
     fprintf(out_, "  .m_key = \"%s\",\n", key_);
-
-    
-//    /* type extract from filename suffix
-//     * -> search suffix from end 
-//     */
-//    {
-//        const char* p = key_ + strlen(key_);
-//        const char* end = p;
-//        const char* type = NULL;
-//        do {
-//            if ((*p == '.') && (p != end)) {
-//                type = p + 1;
-//                break;
-//            }
-//            --p;
-//        } while (p != type);
-//
-//        if (!type) MM_GERR("invalid filename, can't compute type %s", filename_);
-//        fprintf(out_, "  .m_type = \"%s\",\n", type);
-//    }
     
     fprintf(out_, "};\n\n\n\n");
 
@@ -135,16 +115,22 @@ static int hxd_footer(ctx_s* pctx_) {
     
     if (!pctx_ || !pctx_->fout || !pctx_->nbelem ) MM_GERR("internal");
     
-    fprintf(pctx_->fout, "static const rsr_t* hxds_%s[] = {\n",pctx_->prefix);
+    fprintf(pctx_->fout, "static const rsr_t* rsr_array_%s[] = {\n",pctx_->prefix);
     
     size_t i;
     for(i=0;i<pctx_->nbelem;i++){
         fprintf(pctx_->fout, "  &%s_%zu,\n",pctx_->prefix,i);
     }
+    
     fprintf(pctx_->fout, "};\n");
     
-    fprintf(pctx_->fout, "static const size_t hxds_%s_sz = %zu ;\n\n",
-            pctx_->prefix, pctx_->nbelem);
+//    fprintf(pctx_->fout, "static const size_t rsr_array_%s_sz = %zu ;\n\n",
+//            pctx_->prefix, pctx_->nbelem);
+    
+    fprintf(pctx_->fout, "static const rsrs_t rsr_%s = { \n",pctx_->prefix);
+    fprintf(pctx_->fout, "   .m_sz = %zu, \n", pctx_->nbelem);
+    fprintf(pctx_->fout, "   .m_array = rsr_array_%s \n", pctx_->prefix);
+    fprintf(pctx_->fout, "};\n");
     
 end:
     return res;

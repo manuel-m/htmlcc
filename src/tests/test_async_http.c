@@ -32,7 +32,6 @@ int main(int argc, char **argv) {
     br_http_srv_spec_t http_srv_spec = {
         .m_port = 9999,
         .m_gen_response_cb = on_stats_response,
-        .m_static_resources_sz = 0,
         .m_static_resources = NULL
     };
 

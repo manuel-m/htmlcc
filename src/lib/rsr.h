@@ -10,9 +10,14 @@ extern "C" {
 typedef struct {
   const size_t m_sz;
   const uint8_t* m_data;
-//  const char* m_type;
   const char m_key[];
 } rsr_t;
+
+
+typedef struct {
+  const size_t m_sz;
+  const rsr_t** m_array;
+} rsrs_t;
 
 
 #ifdef	__cplusplus

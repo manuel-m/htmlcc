@@ -153,8 +153,8 @@ int br_http_srv_init(br_http_srv_t* srv_, const br_http_srv_spec_t* spec_) {
         srv_->m_resources = hashmap_new();
 
         size_t i;
-        for (i = 0; i < spec_->m_static_resources_sz; i++) {
-            const rsr_t* prsr = spec_->m_static_resources[i];
+        for (i = 0; i < spec_->m_static_resources->m_sz; i++) {
+            const rsr_t* prsr = spec_->m_static_resources->m_array[i];
             MM_INFO("adding %s (%zu)", prsr->m_key, prsr->m_sz);
             if (0 > br_http_srv_rsr_add(srv_, prsr)) goto err;
         }

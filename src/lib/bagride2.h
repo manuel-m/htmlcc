@@ -143,8 +143,7 @@ extern "C" {
     typedef struct br_http_srv_spec_s {
         int m_port;
         void* m_gen_response_cb;
-        const size_t m_static_resources_sz;
-        const rsr_t** m_static_resources;
+        const rsrs_t* m_static_resources;
         const char* m_rsr_404;
     } br_http_srv_spec_t;
 
