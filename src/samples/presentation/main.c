@@ -4,6 +4,7 @@
 
 #include "mmtrace.h"
 #include "bagride2.h"
+#include "br_http.h"
 #include "sub0.h"
 
 #include "hxd_htmlcc_doc.h"

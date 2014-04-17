@@ -3,6 +3,7 @@
 #include <ctype.h>
 #include <time.h>
 #include "bagride2.h"
+#include "br_alloc.h"
 #include "sub0.h"
 #include "mmtrace.h"
 
@@ -28,11 +29,7 @@ void br_tcp_server_close(br_tcp_server_t* srv_) {
     mmpool_free(srv_->m_clients);
 }
 
-void on_alloc_buffer(uv_handle_t *h_, size_t suggested_sz_,  uv_buf_t* buf_) {
-    (void) h_;
-    buf_->base = (char*) calloc(suggested_sz_, sizeof (char));
-    buf_->len = suggested_sz_;
-}
+
 
 static void on_close(uv_handle_t* client_handle_) {
 

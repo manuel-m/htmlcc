@@ -48,7 +48,8 @@ add_library(${LIBHC_A}
             src/lib/hashmap.c
             src/lib/diru.c
             src/lib/bagride2.c
-            src/lib/br_http.c)
+            src/lib/br_http.c
+            src/lib/br_alloc.c)
 
 add_executable (${RSR_EMBEDER_EXE} src/tools/embed.c)
 target_link_libraries(${RSR_EMBEDER_EXE} ${LIBHC_A})

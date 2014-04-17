@@ -1,7 +1,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "bagride2.h"
+#include "br_alloc.h"
+#include "br_http.h"
 #include "mmtrace.h"
 #include "qdirty.h"
 #include "sub0.h"

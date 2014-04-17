@@ -4,6 +4,7 @@
 
 #include "mmtrace.h"
 #include "bagride2.h"
+#include "br_http.h"
 
 static br_http_srv_t http_server;
 
