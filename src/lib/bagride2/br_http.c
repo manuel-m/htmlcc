@@ -9,29 +9,33 @@
 #include "favicon.h"
 #include "strcompat.h"
 
-QD_DECL_STR(html);
-QD_DECL_STR(js);
-QD_DECL_STR(ico);
-QD_DECL_STR(png);
-QD_DECL_STR(css);
-QD_DECL_STR(jpg);
-QD_DECL_STR(gif);
+
+/* Request Methods */
+#define BR_STATIC_RSR_MAP(XX)                                                  \
+    XX(html, "text/html")                                                      \
+    XX(js, "text/javascript")                                                  \
+    XX(ico, "image/x-icon")                                                    \
+    XX(png, "image/png")                                                       \
+    XX(css, "text/css")                                                        \
+    XX(jpg, "image/jpeg")                                                      \
+    XX(gif, "image/gif")  
+
+#define XX(name, response) static const char name##_str[] = # name;
+  BR_STATIC_RSR_MAP(XX)
+#undef XX
 
 #define BR_HTML_HEADER_TYPE(BR_TYPENAME, BR_TYPESTRING)\
  {.id=QD_STR(BR_TYPENAME),.response_type=BR_TYPESTRING}
 
 static const br_http_type_item_t http_hrsr_items[] = {
-
-    BR_HTML_HEADER_TYPE(html, "text/html"),
-    BR_HTML_HEADER_TYPE(js, "text/javascript"),
-    BR_HTML_HEADER_TYPE(ico, "image/x-icon"),
-    BR_HTML_HEADER_TYPE(png, "image/png"),
-    BR_HTML_HEADER_TYPE(css, "text/css"),
-    BR_HTML_HEADER_TYPE(jpg, "image/jpeg"),
-    BR_HTML_HEADER_TYPE(gif, "image/gif"),
-
+      
+#define XX(name, response) {.id=name##_str,.response_type=response},
+  BR_STATIC_RSR_MAP(XX)
+#undef XX      
+          
 };
-#undef BR_HTML_HEADER_TYPE
+
+#undef BR_STATIC_RSR_MAP
 
 static void on_http_close(uv_handle_t* handle_) {
     br_http_cli_t* cli = (br_http_cli_t*) handle_->data;
