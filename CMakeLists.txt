@@ -37,7 +37,7 @@ set(LIBHC_SRC src/lib)
 set(LIBHC_A htmlcc)
 set(LIBRSR_A rsr)
 
-include_directories (src ${GEN_DIR} src/lib)
+include_directories (src ${GEN_DIR} src/lib src/lib/bagride2)
 
 add_library(${LIBHC_A} 
             src/lib/http_parser.c
@@ -47,9 +47,9 @@ add_library(${LIBHC_A}
             src/lib/sub0.c
             src/lib/hashmap.c
             src/lib/diru.c
-            src/lib/bagride2.c
-            src/lib/br_http.c
-            src/lib/br_alloc.c)
+            src/lib/bagride2/bagride2.c
+            src/lib/bagride2/br_http.c
+            src/lib/bagride2/br_alloc.c)
 
 add_executable (${RSR_EMBEDER_EXE} src/tools/embed.c)
 target_link_libraries(${RSR_EMBEDER_EXE} ${LIBHC_A})
