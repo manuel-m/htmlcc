@@ -4,7 +4,6 @@
 #include "br_alloc.h"
 #include "br_http.h"
 #include "mmtrace.h"
-#include "qdirty.h"
 #include "sub0.h"
 #include "favicon.h"
 #include "strcompat.h"
@@ -12,24 +11,21 @@
 
 /* Request Methods */
 #define BR_STATIC_RSR_MAP(XX)                                                  \
-    XX(html, "text/html")                                                      \
-    XX(js, "text/javascript")                                                  \
-    XX(ico, "image/x-icon")                                                    \
-    XX(png, "image/png")                                                       \
-    XX(css, "text/css")                                                        \
-    XX(jpg, "image/jpeg")                                                      \
-    XX(gif, "image/gif")  
+    XX(html, text/html)                                                        \
+    XX(js, text/javascript)                                                    \
+    XX(ico, image/x-icon)                                                      \
+    XX(png, image/png)                                                         \
+    XX(css, text/css)                                                          \
+    XX(jpg, image/jpeg)                                                        \
+    XX(gif, image/gif)  
 
 #define XX(name, response) static const char name##_str[] = # name;
   BR_STATIC_RSR_MAP(XX)
 #undef XX
 
-#define BR_HTML_HEADER_TYPE(BR_TYPENAME, BR_TYPESTRING)\
- {.id=QD_STR(BR_TYPENAME),.response_type=BR_TYPESTRING}
-
 static const br_http_type_item_t http_hrsr_items[] = {
       
-#define XX(name, response) {.id=name##_str,.response_type=response},
+#define XX(name, response) {.id=name##_str,.response_type=#response},
   BR_STATIC_RSR_MAP(XX)
 #undef XX      
           
