@@ -20,15 +20,15 @@
     XX(gif, image/gif)  
 
 #define XX(name, response) static const char name##_str[] = # name;
-  BR_STATIC_RSR_MAP(XX)
+BR_STATIC_RSR_MAP(XX)
 #undef XX
 
 static const br_http_type_item_t http_hrsr_items[] = {
-      
+
 #define XX(name, response) {.id=name##_str,.response_type=#response},
-  BR_STATIC_RSR_MAP(XX)
+    BR_STATIC_RSR_MAP(XX)
 #undef XX      
-          
+
 };
 
 #undef BR_STATIC_RSR_MAP
@@ -69,7 +69,7 @@ static int request_url_cb(http_parser *p_, const char *buf_, size_t sz_) {
 static int header_field_cb(http_parser *p_, const char *buf_, size_t sz_) {
     BR_HTTP_GET_m
     if (m->last_header_element != BR_HEADER_FIELD) m->num_headers++;
-    strlncat(m->headers[m->num_headers - 1][0], sizeof (m->headers[m->num_headers - 1][0]), buf_,   sz_);
+    strlncat(m->headers[m->num_headers - 1][0], sizeof (m->headers[m->num_headers - 1][0]), buf_, sz_);
     m->last_header_element = BR_HEADER_FIELD;
     return 0;
 }
@@ -99,12 +99,85 @@ static int on_headers_complete(http_parser* p_) {
     return 0;
 }
 
+static int br_http_route_static(br_http_cli_t* c_, const char* url_) {
+
+    rsr_t* rsr;
+    const br_http_srv_t* srv = c_->m_srv;
+
+    if (MAP_OK != (hashmap_get(srv->m_resources, url_, (void**) (&rsr)))) {
+        MM_INFO("(%5d) no matching static resource:%s", c_->m_request_num, url_);
+        return -1;
+    }
+
+    /**
+     * Not so good idea to rely on file MIME ...
+     * TODO
+     */
+    const char* suffix = sub0_path_suffix(url_);
+    br_http_type_item_t* type = NULL;
+
+    if (suffix) {
+        if (MAP_OK != (hashmap_get(srv->m_types, suffix, (void**) (&type)))) {
+            MM_INFO("(%5d) invalid requested type:%s", c_->m_request_num, url_);
+        }
+    }
+    /* fallback ... no type detected ... => html */
+    if (NULL == type) hashmap_get(srv->m_types, "html", (void**) (&type));
+
+    MM_INFO("(%5d) response type:%s %s", c_->m_request_num, type->id, type->response_type);
+
+    char* header_value = NULL;
+    size_t header_value_sz = 0;
+
+    header_value_sz = asprintf(&header_value,
+            "HTTP/1.1 200 OK\r\n"
+            "Server: htmlcc/0.1\r\n"
+            "Content-Type: %s\r\n"
+            "X-Content-Type-Options: nosniff \r\n"
+            "Connection: close\r\n"
+            "Content-Length: %zu\r\n"
+            "\r\n",
+            type->response_type,
+            rsr->m_sz);
+
+    /**
+     * TODO
+     * the intermediated malloc shall be avoided
+     */
+    c_->m_resbuf.len = rsr->m_sz + header_value_sz;
+    c_->m_resbuf.base = malloc(c_->m_resbuf.len);
+    strcpy(c_->m_resbuf.base, header_value);
+    free(header_value);
+    memcpy(c_->m_resbuf.base + header_value_sz, rsr->m_data, rsr->m_sz);
+    return 0;
+}
+
+static int on_stats_response(br_http_cli_t* c_) {
+
+    const char index_url[] = "/index.html";
+    const char* url = c_->pub.m_mess.request_url;
+
+    const br_http_srv_t* srv = c_->m_srv;
+
+    /* '/' =>  '/index.html' */
+    if (0 == strcmp(url, "/")) url = index_url;
+
+    /* serve static resource */
+    if (0 == br_http_route_static(c_, url)) goto end;
+
+    /* we are here because page was not found ... so 404 */
+    br_http_route_static(c_, srv->m_rsr_404);
+
+
+end:
+    return 0;
+}
+
 static int message_complete_cb(http_parser* p_) {
     BR_HTTP_GET_m
     MM_INFO("(%5d) http_message_complete", cli->m_request_num);
-
-    br_http_srv_parser_cb response_cb = (br_http_srv_parser_cb) cli->m_srv->m_gen_response_cb;
-    MM_ASSERT(0 == response_cb(cli));
+   
+    on_stats_response(cli);
 
     uv_write(
             &cli->m_write_req,
@@ -112,20 +185,19 @@ static int message_complete_cb(http_parser* p_) {
             &cli->m_resbuf,
             1,
             on_http_after_write);
-    
+
     m->message_complete_cb_called = 1;
     return 0;
 }
 
-static int response_status_cb (http_parser *p_, const char *buf_, size_t sz_)
-{
+static int response_status_cb(http_parser *p_, const char *buf_, size_t sz_) {
     BR_HTTP_GET_m
-    strlncat(m->response_status, sizeof(m->response_status), buf_, sz_);
-  return 0;
+    strlncat(m->response_status, sizeof (m->response_status), buf_, sz_);
+    return 0;
 }
 
 static void on_http_read(uv_stream_t* handle_, ssize_t nread_, const uv_buf_t* buf_) {
-    
+
     size_t parsed;
     br_http_cli_t* cli = (br_http_cli_t*) handle_->data;
     br_http_srv_t* srv = cli->m_srv;
@@ -172,25 +244,24 @@ static void on_http_connect(uv_stream_t* handle_, int status_) {
     }
 }
 
-
 int br_http_srv_init(br_http_srv_t* srv_, const br_http_srv_spec_t* spec_) {
 
     int res = 0;
-    http_parser_settings *settings =  &srv_->m_parser_settings;
-    
+    http_parser_settings *settings = &srv_->m_parser_settings;
+
     settings->on_header_field = header_field_cb;
     settings->on_header_value = header_value_cb;
     settings->on_url = request_url_cb;
     settings->on_message_begin = message_begin_cb;
     settings->on_status = response_status_cb;
-    
+
     settings->on_headers_complete = on_headers_complete;
     settings->on_message_complete = message_complete_cb;
-    
+
     settings->on_body = on_body;
-    
+
     srv_->m_port = spec_->m_port;
-    srv_->m_gen_response_cb = spec_->m_gen_response_cb;
+//    srv_->m_gen_response_cb = spec_->m_gen_response_cb;
     srv_->m_rsr_404 = spec_->m_rsr_404;
     MM_INFO("(%5d) http %ld", srv_->m_port);
     uv_tcp_init(uv_default_loop(), &srv_->m_handler);
@@ -261,62 +332,8 @@ err:
     return -1;
 }
 
-int on_stats_response_generic(br_http_cli_t* c_) {
 
-    rsr_t* rsr;
-    const char index_url[] = "/index.html";
-    const char* url = c_->pub.m_mess.request_url;
 
-    const br_http_srv_t* srv = c_->m_srv;
-
-    /* '/' =>  '/index.html' */
-    if (0 == strcmp(url, "/")) url = index_url;
-
-    if (MAP_OK != (hashmap_get(srv->m_resources, url, (void**) (&rsr)))) {
-        MM_INFO("(%5d) invalid requested url:%s", c_->m_request_num, url);
-        /* not found 404 fallback*/
-        hashmap_get(srv->m_resources, srv->m_rsr_404, (void**) (&rsr));
-    }
-    const char* suffix = sub0_path_suffix(url);
-    br_http_type_item_t* type = NULL;
-
-    if (suffix) {
-        if (MAP_OK != (hashmap_get(srv->m_types, suffix, (void**) (&type)))) {
-            MM_INFO("(%5d) invalid requested type:%s", c_->m_request_num, url);
-        }
-    }
-    /* fallback ... no type detected ... => html */
-    if (NULL == type) hashmap_get(srv->m_types, "html", (void**) (&type));
-
-    MM_INFO("(%5d) response type:%s %s", c_->m_request_num, type->id, type->response_type);
-
-    char* header_value = NULL;
-    size_t header_value_sz = 0;
-
-    header_value_sz = asprintf(&header_value,
-            "HTTP/1.1 200 OK\r\n"
-            "Server: htmlcc/0.1\r\n"
-            "Content-Type: %s\r\n"
-            "X-Content-Type-Options: nosniff \r\n"
-            "Connection: close\r\n"
-            "Content-Length: %zu\r\n"
-            "\r\n",
-            type->response_type,
-            rsr->m_sz);
-
-    /**
-     * TODO
-     * the intermediated malloc shall be avoided
-     */
-    c_->m_resbuf.len = rsr->m_sz + header_value_sz;
-    c_->m_resbuf.base = malloc(c_->m_resbuf.len);
-    strcpy(c_->m_resbuf.base, header_value);
-    free(header_value);
-
-    memcpy(c_->m_resbuf.base + header_value_sz, rsr->m_data, rsr->m_sz);
-
-    return 0;
-}
 
 
 

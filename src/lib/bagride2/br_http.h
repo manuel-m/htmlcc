@@ -86,18 +86,13 @@ extern "C" {
     
     typedef struct br_http_srv_spec_s {
         int m_port;
-        void* m_gen_response_cb;
         const rsrs_t* m_static_resources;
         const char* m_rsr_404;
     } br_http_srv_spec_t;
 
     int br_http_srv_init(br_http_srv_t* srv_, const br_http_srv_spec_t* spec_);
     int br_http_srv_static_rsr_add(br_http_srv_t* srv_, const rsr_t* rsr_);
-    
-    
-    int on_stats_response_generic(br_http_cli_t* c_);
-    
-
+   
 
 #ifdef	__cplusplus
 }
