@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>25-mai-2014</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <link rel="stylesheet" type="text/css" href="css/ds.css" />
+    <link rel="stylesheet" type="text/css" href="css/yk.css" />
+    <style type="text/css">
+
+      body { font-family: 'Droid Serif'; }
+      h1, h2, h3 {
+        font-family: 'Yanone Kaffeesatz';
+        font-weight: normal;
+      }
+    </style>
+  </head>
+  <body>
+    <textarea id="source">
+
+class: middle, center
+
+# websumup
+
+---
+# Javascript
+## Core javascript
+### variables types
+
+```javascript
+// JavaScript supports several types of values  
+x = 1; // Numbers.  
+x = 0.01; // Just one Number type for integers and reals.  
+x = "hello world"; // Strings of text in quotation marks.  
+x = 'JavaScript'; // Single quote marks also delimit strings.  
+x = true; // Boolean values.  
+x = null; // Null is a special value that means "no value".  
+x = undefined; // Undefined is like null.
+
+
+// JavaScript's most important data type is the object.  
+// An object is a collection of name/value pairs, or a string to value map.  
+var book = { // Objects are enclosed in curly braces.  
+ topic: "JavaScript", // The property "topic" has value "JavaScript".  
+ fat: true // The property "fat" has value true.  
+}; // The curly brace marks the end of the object.  
+
+// Access the properties of an object with . or []:
+book.topic // => "JavaScript"  
+book["fat"] // => true: another way to access property values.  
+book.author = "Flanagan"; // Create new properties by assignment.  
+book.contents = {}; // {} is an empty object with no properties.
+
+```
+---
+
+```javascript
+// JavaScript also supports arrays (numerically indexed lists) of values:
+var primes = [2, 3, 5, 7]; // An array of 4 values, delimited with [ and ].
+primes[0] // => 2: the first element (index 0) of the array.
+primes.length // => 4: how many elements in the array.
+primes[primes.length-1] // => 7: the last element of the array.
+primes[4] = 9; // Add a new element by assignment.
+primes[4] = 11; // Or alter an existing element by assignment.
+var empty = []; // [] is an empty array with no elements.
+empty.length // => 0
+// Arrays and objects can hold other arrays and objects:
+var points = [ // An array with 2 elements.
+ {x:0, y:0}, // Each element is an object.
+ {x:1, y:1}
+];
+var data = { // An object with 2 properties
+ trial1: [[1,2], [3,4]], // The value of each property is an array.
+ trial2: [[2,3], [4,5]] // The elements of the arrays are arrays.
+};
+
+```
+---
+### operators
+
+```javascript
+// Operators act on values (the operands) to produce a new value.
+// Arithmetic operators are the most common:
+3 + 2 // => 5: addition
+3 - 2 // => 1: subtraction
+3 * 2 // => 6: multiplication
+3 / 2 // => 1.5: division
+points[1].x - points[0].x // => 1: more complicated operands work, too
+"3" + "2" // => "32": + adds numbers, concatenates strings
+// JavaScript defines some shorthand arithmetic operators
+var count = 0; // Define a variable
+count++; // Increment the variable
+count--; // Decrement the variable
+count += 2; // Add 2: same as count = count + 2;
+count *= 3; // Multiply by 3: same as count = count * 3;
+count // => 6: variable names are expressions, too.
+// Equality and relational operators test whether two values are equal,
+// unequal, less than, greater than, and so on. They evaluate to true or false.
+var x = 2, y = 3; // These = signs are assignment, not equality tests
+x == y // => false: equality
+x != y // => true: inequality
+x < y // => true: less-than
+x <= y // => true: less-than or equal
+x > y // => false: greater-than
+x >= y // => false: greater-than or equal
+"two" == "three" // => false: the two strings are different
+"two" > "three" // => true: "tw" is alphabetically greater than "th"
+false == (x > y) // => true: false is equal to false
+// Logical operators combine or invert boolean values
+(x == 2) && (y == 3) // => true: both comparisons are true. && is AND
+(x > 3) || (y < 3) // => false: neither comparison is true. || is OR
+!(x == y) // => true: ! inverts a boolean value
+```
+---
+### evaluated as false 
+```javascript
+undefined
+null
+0
+-0
+NaN
+"" // the empty string
+```
+### null and undefined
+```javascript
+null and undefined both indicate an absence of value and
+can often be used interchangeably
+```
+### Immutable Primitive Values
+```javascript
+var s = "hello"; // Start with some lowercase text
+s.toUpperCase(); // Returns "HELLO", but doesn't alter s
+s // => "hello": the original string has not changed
+
+// [!] Primitives are also compared by value: two values are the same only if they have the
+// same value
+
+```
+---
+
+### Mutable Object References
+```javascript
+var o = { x:1 }; // Start with an object
+o.x = 2; // Mutate it by changing the value of a property
+o.y = 3; // Mutate it again by adding a new property
+var a = [1,2,3] // Arrays are also mutable
+a[0] = 0; // Change the value of an array element
+a[3] = 4; // Add a new array element
+
+// [!] Objects are not compared by value: two objects are not equal even if they have
+// the same properties and values. And two arrays are not equal even if they have the same
+// elements in the same order
+```
+
+```javascript
+// Objects values are the same if and only if they refer to the same underlying object.
+var a = []; // The variable a refers to an empty array.
+var b = a; // Now b refers to the same array.
+b[0] = 1; // Mutate the array referred to by variable b.
+a[0] // => 1: the change is also visible through variable a.
+a === b // => true: a and b refer to the same object, so they are equal.
+
+```
+```javascript
+// If you want to make a new copy of an object or array, you must explicitly copy the properties 
+// of the object or the elements of the array. This example demonstrates using a for loop
+var a = ['a','b','c']; // An array we want to copy
+var b = []; // A distinct array we'll copy into
+for(var i = 0; i < a.length; i++) { // For each index of a[]
+ b[i] = a[i]; // Copy an element of a into b
+}
+```
+
+---
+
+###  functions
+```javascript
+// Functions are parameterized blocks of JavaScript code that we can invoke.
+function plus1(x) { // Define a function named "plus1" with parameter "x"
+ return x+1; // Return a value one larger than the value passed in
+} // Functions are enclosed in curly braces
+
+plus1(y) // => 4: y is 3, so this invocation returns 3+1
+
+var square = function(x) { // Functions are values and can be assigned to vars
+ return x*x; // Compute the function's value
+}; // Semicolon marks the end of the assignment.
+
+square(plus1(y)) // => 16: invoke two functions in one expression
+
+function factorial2(n) { // Another version using a different loop
+ var i, product = 1; // Start with 1
+ for(i=2; i <= n; i++) // Automatically increment i from 2 up to n
+ product *= i; // Do this each time. {} not needed for 1-line loops
+ return product; // Return the factorial
+}
+
+factorial2(5) // => 120: 1*2*3*4*5
+
+```
+---
+
+### classes and modules
+```javascript
+// Define a constructor function to initialize a new Point object
+function Point(x,y) { // By convention, constructors start with capitals
+ this.x = x; // this keyword is the new object being initialized
+ this.y = y; // Store function arguments as object properties
+} // No return is necessary
+
+// Use a constructor function with the keyword "new" to create instances
+var p = new Point(1, 1); // The geometric point (1,1)
+
+// Define methods for Point objects by assigning them to the prototype
+// object associated with the constructor function.
+Point.prototype.r = function() { 
+ return Math.sqrt( // Return the square root of x² + y²
+ this.x * this.x + // This is the Point object on which the method...
+ this.y * this.y // ...is invoked.
+ );
+};
+
+// Now the Point object p (and all future Point objects) inherits the method r()
+p.r() // => 1.414...
+```
+
+###  dates and times
+```javascript
+var then = new Date(2010, 0, 1); // The 1st day of the 1st month of 2010
+var later = new Date(2010, 0, 1, // Same day, at 5:10:30pm, local time
+ 17, 10, 30);
+var now = new Date(); // The current date and time
+var elapsed = now - then; // Date subtraction: interval in milliseconds 
+later.getFullYear() // => 2010
+later.getMonth() // => 0: zero-based months
+later.getDate() // => 1: one-based days
+later.getDay() // => 5: day of week. 0 is Sunday 5 is Friday.
+later.getHours() // => 17: 5pm, local time
+later.getUTCHours() // hours in UTC time; depends on timezone
+```
+---
+### working with strings
+```javascript
+var s = "hello, world" // Start with some text.
+s.charAt(0) // => "h": the first character.
+s.charAt(s.length-1) // => "d": the last character.
+s.substring(1,4) // => "ell": the 2nd, 3rd and 4th characters.
+s.slice(1,4) // => "ell": same thing
+s.slice(-3) // => "rld": last 3 characters
+s.indexOf("l") // => 2: position of first letter l.
+s.lastIndexOf("l") // => 10: position of last letter l.
+s.indexOf("l", 3) // => 3: position of first "l" at or after 3
+s.split(", ") // => ["hello", "world"] split into substrings
+s.replace("h", "H") // => "Hello, world": replaces all instances
+s.toUpperCase() // => "HELLO, WORLD
+
+```
+### pattern matching
+```javascript
+/^HTML/ // Match the letters H T M L at the start of a string
+/[1-9][0-9]*/ // Match a non-zero digit, followed by any # of digits
+/\bjavascript\b/i // Match "javascript" as a word, case-insensitive
+
+var text = "testing: 1, 2, 3"; // Sample text
+var pattern = /\d+/g // Matches all instances of one or more digits
+pattern.test(text) // => true: a match exists
+text.search(pattern) // => 9: position of first match
+text.match(pattern) // => ["1", "2", "3"]: array of all matches
+text.replace(pattern, "#"); // => "testing: #, #, #"
+text.split(/\D+/); // => ["","1","2","3"]: split on non-digits
+
+```
+
+   
+
+    </textarea>
+    <script src="js/remark-latest.min.js" type="text/javascript">
+    </script>
+    <script type="text/javascript">
+      var slideshow = remark.create();
+    </script>
+  </body>
+</html>
