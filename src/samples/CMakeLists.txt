@@ -1,2 +1,3 @@
 add_subdirectory(presentation)
 add_subdirectory(tinycontrol)
+add_subdirectory(websumup)

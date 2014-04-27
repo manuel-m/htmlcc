@@ -17,6 +17,7 @@
     XX(png, image/png)                                                         \
     XX(css, text/css)                                                          \
     XX(jpg, image/jpeg)                                                        \
+    XX(ttf, font/ttf)                                                          \
     XX(gif, image/gif)  
 
 #define XX(name, response) static const char name##_str[] = # name;
