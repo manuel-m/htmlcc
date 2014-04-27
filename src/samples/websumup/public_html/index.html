@@ -169,6 +169,15 @@ for(var i = 0; i < a.length; i++) { // For each index of a[]
  b[i] = a[i]; // Copy an element of a into b
 }
 ```
+```javascript
+// To compare two distinct objects or arrays
+function equalArrays(a,b) {
+ if (a.length != b.length) return false; // Different-size arrays not equal
+ for(var i = 0; i < a.length; i++) // Loop through all elements
+ if (a[i] !== b[i]) return false; // If any differ, arrays not equal
+ return true; // Otherwise they are equal
+}
+```
 
 ---
 
@@ -269,8 +278,196 @@ text.replace(pattern, "#"); // => "testing: #, #, #"
 text.split(/\D+/); // => ["","1","2","3"]: split on non-digits
 
 ```
+---
 
-   
+### types conversions
+```javascript
+10 + " objects" // => "10 objects". Number 10 converts to a string
+"7" * "4" // => 28: both strings convert to numbers
+var n = 1 - "x"; // => NaN: string "x" can't convert to a number
+n + " objects" // => "NaN objects": NaN converts to string "NaN"
+```
+```javascript
+null == undefined // These two values are treated as equal.
+"0" == 0 // String converts to a number before comparing.
+0 == false // Boolean converts to number before comparing.
+"0" == false // Both operands convert to numbers before comparing.
+```
+```javascript
+Number("3") // => 3
+String(false) // => "false" Or use false.toString()
+Boolean([]) // => true
+Object(3) // => new Number(3)
+```
+```javascript
+x + "" // Same as String(x)
++x // Same as Number(x). You may also see x-0
+!!x // Same as Boolean(x). Note double !
+```
+```javascript
+var n = 17;
+binary_string = n.toString(2); // Evaluates to "10001"
+octal_string = "0" + n.toString(8); // Evaluates to "021"
+hex_string = "0x" + n.toString(16); // Evaluates to "0x11"
+```
+---
+### number conversions
+```javascript
+var n = 123456.789;
+n.toFixed(0); // "123457"
+n.toFixed(2); // "123456.79"
+n.toFixed(5); // "123456.78900"
+n.toExponential(1); // "1.2e+5"
+n.toExponential(3); // "1.235e+5"
+n.toPrecision(4); // "1.235e+5"
+n.toPrecision(7); // "123456.8"
+n.toPrecision(10); // "123456.7890"
+parseInt("3 blind mice") // => 3
+parseFloat(" 3.14 meters") // => 3.14
+parseInt("-12.34") // => -12
+parseInt("0xFF") // => 255
+parseInt("0xff") // => 255
+parseInt("-0XFF") // => -255
+parseFloat(".1") // => 0.1
+parseInt("0.1") // => 0
+parseInt(".1") // => NaN: integers can't start with "."
+parseFloat("$72.47"); // => NaN: numbers can't start with "$"
+parseInt("11", 2); // => 3 (1*2 + 1)
+parseInt("ff", 16); // => 255 (15*16 + 15)
+parseInt("zz", 36); // => 1295 (35*36 + 35)
+parseInt("077", 8); // => 63 (7*8 + 7)
+parseInt("077", 10); // => 77 (7*10 + 7)
+
+```
+---
+### objects to primitives conversions
+```javascript
+[1,2,3].toString() // => "1,2,3"
+(function(x) { f(x); }).toString() // => "function(x) {\n f(x);\n}"
+/\d+/g.toString() // => "/\\d+/g"
+new Date(2010,0,1).toString() // => "Fri Jan 01 2010 00:00:00 GMT-0800 (PST)"
+```
+```javascript
+var d = new Date(2010, 0, 1); // January 1st, 2010, (Pacific time)
+d.valueOf() // => 1262332800000
+```
+```javascript
+var now = new Date(); // Create a Date object
+typeof (now + 1) // => "string": + converts dates to strings
+typeof (now - 1) // => "number": - uses object-to-number conversion
+now == now.toString() // => true: implicit and explicit string conversions
+now > (now -1) // => true: > converts a Date to a number
+```
+---
+### variables declarations
+```javascript
+var i; // i value is undefined
+i = 10; // legal
+i = "ten"; // legal
+```
+```javascript
+for(var i = 0, j=10; i < 10; i++,j--) console.log(i*j);
+for(var p in o) console.log(p);
+```
+### variables scope
+```javascript
+var scope = "global"; // Declare a global variable
+function checkscope() {
+ var scope = "local"; // Declare a local variable with the same name
+ return scope; // Return the local value, not the global one
+}
+checkscope() // => "local"
+```
+```javascript
+scope = "global"; // Declare a global variable, even without var.
+function checkscope2() {
+ scope = "local"; // Oops! We just changed the global variable.
+ myscope = "local"; // This implicitly declares a new global variable.
+ return [scope, myscope]; // Return two values.
+}
+checkscope2() // => ["local", "local"]: has side effects!
+scope // => "local": global variable has changed.
+myscope // => "local": global namespace cluttered up.
+
+```
+```javascript
+var scope = "global scope"; // A global variable
+function checkscope() {
+ var scope = "local scope"; // A local variable
+ function nested() {
+ var scope = "nested scope"; // A nested scope of local variables
+ return scope; // Return the value in scope here
+ }
+ return nested();
+}
+checkscope() // => "nested scope"
+```
+---
+### [!] functions scope
+```javascript
+function test(o) {
+ var i = 0; // i is defined throughout function
+ if (typeof o == "object") {
+ var j = 0; // j is defined everywhere, not just block
+ for(var k=0; k < 10; k++) { // k is defined everywhere, not just loop
+ console.log(k); // print numbers 0 through 9
+ }
+ console.log(k); // k is still defined: prints 10
+ }
+ console.log(j); // j is defined, but may not be initialized
+}
+
+```
+```javascript
+function f() {
+ var scope; // Local variable is declared at the top of the function
+ console.log(scope); // It exists here, but still has "undefined" value
+ scope = "local"; // Now we initialize it and give it a value
+ console.log(scope); // And here it has the value we expect
+}
+```
+```javascript
+var truevar = 1; // A properly declared global variable, nondeletable.
+fakevar = 2; // Creates a deletable property of the global object.
+this.fakevar2 = 3; // This does the same thing.
+delete truevar // => false: variable not deleted
+delete fakevar // => true: variable deleted
+delete this.fakevar2 // => true: variable deleted
+```
+---
+### objects and arrays initializers
+```javascript
+var matrix = [[1,2,3], [4,5,6], [7,8,9]];
+var sparseArray = [1,,,,5];
+
+var p = { x:2.3, y:-1.2 }; // An object with 2 properties
+var q = {}; // An empty object with no properties
+q.x = 2.3; q.y = -1.2; // Now q has the same properties as p
+
+var rectangle = { upperLeft: { x: 2, y: 2 },
+ lowerRight: { x: 4, y: 5 } };
+
+var side = 1;
+var square = { "upperLeft": { x: p.x, y: p.y },
+ 'lowerRight': { x: p.x + side, y: p.y + side}};
+
+ var square = function(x) { return x * x; }
+```
+### property access expressions
+```javascript
+var o = {x:1,y:{z:3}}; // An example object
+var a = [o,4,[5,6]]; // An example array that contains the object
+o.x // => 1: property x of expression o
+o.y.z // => 3: property z of expression o.y
+o["x"] // => 1: property x of object o
+a[1] // => 4: element at index 1 of expression a
+a[2]["1"] // => 6: element at index 1 of expression a[2]
+a[0].x // => 1: property x of expression a[0]
+
+```
+
+
+
 
     </textarea>
     <script src="js/remark-latest.min.js" type="text/javascript">
