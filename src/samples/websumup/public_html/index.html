@@ -109,6 +109,15 @@ false == (x > y) // => true: false is equal to false
 (x == 2) && (y == 3) // => true: both comparisons are true. && is AND
 (x > 3) || (y < 3) // => false: neither comparison is true. || is OR
 !(x == y) // => true: ! inverts a boolean value
+
+1 + 2 // Addition. Result is 3.
+"1" + "2" // Concatenation. Result is "12".
+"1" + 2 // Concatenation. 2 is converted to "2". Result is "12".
+11 < 3 // Numeric comparison. Result is false.
+"11" < "3" // String comparison. Result is true.
+"11" < 3 // Numeric comparison. "11" converted to 11. Result is false.
+"one" < 3 // Numeric comparison. "one" converted to NaN. Result is false.
+
 ```
 ---
 ### evaluated as false 
@@ -366,6 +375,9 @@ i = 10; // legal
 i = "ten"; // legal
 ```
 ```javascript
+var i = j = k = 0; // Initialize 3 variables to 0
+```
+```javascript
 for(var i = 0, j=10; i < 10; i++,j--) console.log(i*j);
 for(var p in o) console.log(p);
 ```
@@ -465,8 +477,57 @@ a[2]["1"] // => 6: element at index 1 of expression a[2]
 a[0].x // => 1: property x of expression a[0]
 
 ```
+---
+### in operator
+```javascript
+var point = { x:1, y:1 }; // Define an object
+"x" in point // => true: object has property named "x"
+"z" in point // => false: object has no "z" property.
+"toString" in point // => true: object inherits toString method
+var data = [7,8,9]; // An array with elements 0, 1, and 2
+"0" in data // => true: array has an element "0"
+1 in data // => true: numbers are converted to strings
+3 in data // => false: no element 3
+```
+### instanceof operator
+```javascript
+var d = new Date(); // Create a new object with the Date() constructor
+d instanceof Date; // Evaluates to true; d was created with Date()
+d instanceof Object; // Evaluates to true; all objects are instances of Object
+d instanceof Number; // Evaluates to false; d is not a Number object
+var a = [1, 2, 3]; // Create an array with array literal syntax
+a instanceof Array; // Evaluates to true; a is an array
+a instanceof Object; // Evaluates to true; all arrays are objects
+a instanceof RegExp; // Evaluates to false; arrays are not regular expressions
+```
+### logical
+```javascript
+if (a == b) stop(); // Invoke stop() only if a == b
+(a == b) && stop(); // This does the same thing
+```
+```javascript
+// Copy the properties of o to p, and return p
+function copy(o, p) {
+ p = p || {}; // If no object passed for p, use a newly created object.
+ // function body goes here
+}
+```
+---
+### typeof operator
+```javascript
+(typeof value == "string") ? "'" + value + "'" : value
+```
+### delete operator
+```javascript
+var o = { x: 1, y: 2}; // Start with an object
+delete o.x; // Delete one of its properties
+"x" in o // => false: the property does not exist anymore
 
+var a = [1,2,3]; // Start with an array
+delete a[2]; // Delete the last element of the array
+a.length // => 2: array only has two elements now
 
+```
 
 
     </textarea>
