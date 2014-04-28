@@ -44,6 +44,48 @@
 
 })();
 ```
+---
+
+# handlebars
+```html
+<html>
+<head><title>handlebars</title></head>
+<body>
+    <ul class="tweets">
+        <script id="template" type="text/x-handlebars-template">
+        {{#each this}}
+        <li>
+        <h2>{{{fullname}}}</h2>
+        <p>{{{tweet}}}</p>
+        {{#if quote}}
+        <h5>{{quote}}</h5>
+        {{else}}
+        <h5>no quote</h5>
+         </li>
+         {{/each}}
+        </script>
+    </ul>
+</body>
+</html>
+```
+```javascript
+(function() {
+    var data = [{
+        author: 'lklk',
+        tweet: 'lll',
+        age: 27
+    }, {
+        author: 'lklk',
+        tweet: 'lll',
+        age: 27
+    }];
+Handlebars.registerHelper('fullName', function( author) {
+  return  author.first + ' ' + author.last +  ' - ' + author.age;
+});
+    var template = Handlebars.compile($('#template').html());
+    $('ul.tweets').append(template(data));
+})();
+```
 
 
 
