@@ -86,9 +86,48 @@ Handlebars.registerHelper('fullName', function( author) {
     $('ul.tweets').append(template(data));
 })();
 ```
-
-
-
+---
+# twitter API
+```html
+<ul class="tweets"><script type="text/x-handlebars-template">
+{{#each this}}
+<li><img src={{{thumb}}} alt={{{author}}}>
+<p><a href="{{url}}">{{tweet}}</p></li>
+{{/each}}
+</script></ul>
+```
+```javascript
+(function() {
+    var Twitter = {
+        init: function(config) {
+            this.url = 'search.twitter.com/search.json?q=discoride&callback=?';
+            this.template = config.template;
+            this.container = config.container;
+            this.fetch();
+        },
+        attachTemplate: function(){
+            var template =  Handlebars.compile(this.template);
+            this.container.append(template(this.tweets));
+        },
+        fetch: function() {
+            var self=this;
+            $.getJSON(this.url, function(data) {
+                var tweets = $.map(data.results, function(tweet) {
+                    return {
+                        author: tweet.from_user,
+                        tweet: tweet.txt,
+                        thumb: tweet.profile_img_url,
+                        url: 'http://twitter.com/' + tweet.from_user + '/status/' + tweet.id_str
+                    };
+                });
+            });
+        }
+    };
+    Twitter.init({
+        template: $('#tweets-template').html(),container: $('#discoride-tweets'),query: 'discoride'
+      });
+})();
+```
 
 
     </textarea>
