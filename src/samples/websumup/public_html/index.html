@@ -528,6 +528,22 @@ delete a[2]; // Delete the last element of the array
 a.length // => 2: array only has two elements now
 
 ```
+### labeled statements
+```javascript
+mainloop: while(token != null) {
+ // Code omitted...
+ continue mainloop; // Jump to the next iteration of the named loop
+ // More code omitted...
+}
+```
+### debugger 
+```javascript
+function f(o) {
+ if (o === undefined) debugger; // Temporary line for debugging purposes
+ ... // The rest of the function goes here.
+}
+```
+
 
 
     </textarea>

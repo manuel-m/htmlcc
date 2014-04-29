@@ -90,10 +90,8 @@ Handlebars.registerHelper('fullName', function( author) {
 # twitter API
 ```html
 <ul class="tweets"><script type="text/x-handlebars-template">
-{{#each this}}
-<li><img src={{{thumb}}} alt={{{author}}}>
-<p><a href="{{url}}">{{tweet}}</p></li>
-{{/each}}
+{{#each this}}<li><img src={{{thumb}}} alt={{{author}}}>
+<p><a href="{{url}}">{{tweet}}</p></li>{{/each}}
 </script></ul>
 ```
 ```javascript
@@ -120,12 +118,41 @@ Handlebars.registerHelper('fullName', function( author) {
                         url: 'http://twitter.com/' + tweet.from_user + '/status/' + tweet.id_str
                     };
                 });
+                self.attachTemplate();
             });
         }
     };
     Twitter.init({
         template: $('#tweets-template').html(),container: $('#discoride-tweets'),query: 'discoride'
       });
+})();
+```
+---
+# $.grep
+```javascript
+(function() {
+
+    var arr1 = [1, 2, 3, 4, 5, 6, 7, 8];
+    $.grep(arr1, function(val, index) {
+        // only returns number > 5
+        return val > 5;
+    });
+    console.log(arr1);
+
+    var arr2 = [{
+        first: 'lklk',
+        last: 'plouf'
+    }, {
+        first: 'lklk',
+        last: 'kiki'
+    }];
+
+    $.grep(arr2, function(arr2, index) {
+        return obj.last === 'kiki';
+        // false: invert match
+    }, false);
+    console.log(arr2);
+
 })();
 ```
 
