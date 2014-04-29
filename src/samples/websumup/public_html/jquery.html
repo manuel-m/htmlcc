@@ -155,7 +155,130 @@ Handlebars.registerHelper('fullName', function( author) {
 
 })();
 ```
+---
+# custom events
+```javascript
+(function( $ ) {
 
+    $.getJSON('http://azerty', function(resuts) {
+        // any processing
+        $(document).trigger('twitter/results', results); // publish
+    });
+
+    // ...
+    $(document).on('twitter/results', function(e, results) {
+        console.log(results);
+    });
+
+    // ...
+    $(document).on('twitter/results', function(e, results) {
+        console.log(results);
+    });
+
+})('jQuery'); // to be sure  $ refer to jQuery
+```
+---
+# mini pub/sub
+```javascript
+// define custom API
+// self invoking anonymous function
+// -> avoid global variables
+(function($) {
+
+    var o = $({});
+    $.each({
+        trigger: 'publish',
+        on: 'subscribe',
+        off: 'unsubscribe'
+        // an object is used as the collection, the callback is passed a key-value pair each time
+    }, function(key, val) {
+        jQuery[val] = function() {
+            o[key].apply(o, arguments);
+        };
+    });
+})(jQuery); // to be sure  $ refer to jQuery
+```
+```javascript
+(function($) {
+
+    $.getJSON('/http://some/place', function(results) {
+        /*optional stuff to do after success */
+        $.publish('chan/mess', results);
+    });
+
+    $.subscribe('chan/mess', function(results) {
+        console.log(results);
+    });
+
+})(jQuery); 
+```
+---
+# pub/sub twitter (1/2)
+```javascript
+(function($) {
+    var Twitter = {
+        init: function() {
+            this.template = '<li>{{tweet}}</li>';
+            this.query = "@something";
+            this.tweets = [];
+            this.timer;// error ???
+            this.cache();
+            this.bindEvents();
+            this.subscriptions();
+            // default state
+            this.searchInput.val(this.query);
+            $.publish('chan/mess');
+            return this;
+        },
+        cache: function() {
+            this.container = $('ul.tweets');
+            this.searchInput = $('#q');
+        },
+        bindEvents: function() {
+            this.searchInput.on('keyup', this.search);
+        },
+        subscriptions: function() {
+            $.subscribe('chan/messfetchJson', this.fetchJSON);
+            $.subscribe('chan/mess2', this.renderResults);
+        },
+        search: function() {
+            var self = Twitter,
+                input = this;
+            clearTimeout(self.timer);
+            self.timer = (input.value.length >= 3) && setTimeout(function() {
+                self.query = input.value;
+                $.publish('chan/messfetchJson');
+
+            }, 400);
+        },
+```
+---
+# pub/sub twitter (2/2)
+```javascript        
+        fetchJSON: function() {
+            var url = 'http://my/place';
+            return $.getJSON(url + Twitter.query, function(data) {
+                Twitter.tweets = data.results;
+                $.publish('chan/mess2');
+            });
+        },
+        renderResults: function() {
+            var self = Twitter,
+                frag = [],
+                tweet;
+
+            self.container.html(
+                $.map(self.tweets, function(obj, index) {
+                    obj.text.replace(/(http:[^\s]+)/, '<a href="$1">$1</a>')
+                        .replace(/@([^\s]+)/, '<a href="http://my/place/$1">@$1</a>');
+                    return self.template.replace(/{{tweet}}/, t);
+                }).join('')
+            );
+        }
+    };
+    window.Twitter = Twitter.init();
+})(jQuery);
+```
 
     </textarea>
     <script src="js/remark-latest.min.js" type="text/javascript">
