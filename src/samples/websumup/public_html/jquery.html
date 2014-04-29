@@ -147,7 +147,7 @@ Handlebars.registerHelper('fullName', function( author) {
         last: 'kiki'
     }];
 
-    $.grep(arr2, function(arr2, index) {
+    $.grep(arr2, function(obj, index) {
         return obj.last === 'kiki';
         // false: invert match
     }, false);
