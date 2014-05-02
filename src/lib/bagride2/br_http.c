@@ -105,7 +105,7 @@ static int br_http_route_static(br_http_cli_t* c_, const char* url_) {
     rsr_t* rsr;
     const br_http_srv_t* srv = c_->m_srv;
 
-    if (MAP_OK != (hashmap_get(srv->m_resources, url_, (void**) (&rsr)))) {
+    if (MAP_OK != (hashmap_get(srv->m_static_resources, url_, (void**) (&rsr)))) {
         MM_INFO("(%5d) no matching static resource:%s", c_->m_request_num, url_);
         return -1;
     }
@@ -262,7 +262,6 @@ int br_http_srv_init(br_http_srv_t* srv_, const br_http_srv_spec_t* spec_) {
     settings->on_body = on_body;
 
     srv_->m_port = spec_->m_port;
-//    srv_->m_gen_response_cb = spec_->m_gen_response_cb;
     srv_->m_rsr_404 = spec_->m_rsr_404;
     MM_INFO("(%5d) http %ld", srv_->m_port);
     uv_tcp_init(uv_default_loop(), &srv_->m_handler);
@@ -287,7 +286,7 @@ int br_http_srv_init(br_http_srv_t* srv_, const br_http_srv_spec_t* spec_) {
     }
 
     if (spec_->m_static_resources) {
-        srv_->m_resources = hashmap_new();
+        srv_->m_static_resources = hashmap_new();
 
         size_t i;
         for (i = 0; i < spec_->m_static_resources->m_sz; i++) {
@@ -300,7 +299,7 @@ int br_http_srv_init(br_http_srv_t* srv_, const br_http_srv_spec_t* spec_) {
          * -> we add if not defined */
         {
             const rsr_t* prsr = NULL;
-            hashmap_get(srv_->m_resources, rsr_favicon.m_key, (void**) (&prsr));
+            hashmap_get(srv_->m_static_resources, rsr_favicon.m_key, (void**) (&prsr));
             if (!prsr) if (0 > br_http_srv_static_rsr_add(srv_, &rsr_favicon)) goto err;
         }
     }
@@ -325,7 +324,7 @@ int br_http_srv_static_rsr_add(br_http_srv_t* srv_, const rsr_t* rsr_) {
         MM_GERR("static resource not handled (suffix) %s (%s)", rsr_->m_key);
 
 
-    if (MAP_OK != hashmap_put(srv_->m_resources, rsr_->m_key, (any_t) rsr_))
+    if (MAP_OK != hashmap_put(srv_->m_static_resources, rsr_->m_key, (any_t) rsr_))
         MM_GERR("resource add: %s", rsr_->m_key);
     return 0;
 

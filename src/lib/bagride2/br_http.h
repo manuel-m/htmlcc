@@ -22,7 +22,7 @@ extern "C" {
         int m_port;
         void* m_gen_response_cb;
         const char* m_rsr_404;
-        map_t m_resources;
+        map_t m_static_resources;
         map_t m_types;
     } br_http_srv_t;
 
