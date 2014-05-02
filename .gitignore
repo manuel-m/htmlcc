@@ -8,6 +8,7 @@ CMakeFiles
 *~
 cmake_install.cmake
 gmon.out
+.ctags
 *.a
 *.o
 *.Plo
@@ -21,3 +22,4 @@ libuv/.libs
 libuv/autom4te.cache
 libs/libuv/
 generated_sources
+.tags_sorted_by_file
