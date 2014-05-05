@@ -17,11 +17,14 @@
   <body>
     <textarea id="source">
 
-# setup
-```bash
-(for f in $(ls -rlt|awk '{print $9}' );do echo '```python';cat $f;echo && echo '```'&&echo '---'; done; )
-```
 # python
+# quick setup
+```bash
+(for f in $(ls -rlt|awk '{print $9}' );\
+do echo '```python';cat $f;echo && echo '```'&&echo '---'; done; )
+```
+---
+## printing and variables
 ```python
 print "I will now count my chickens:"
 print "Hens", 25 + 30 / 6
@@ -38,7 +41,6 @@ print "Is it greater?", 5 > -2
 print "Is it greater or equal?", 5 >= -2
 print "Is it less or equal?", 5 <= -2
 ```
----
 ```python
 cars = 100
 space_in_a_car = 4.0
@@ -57,6 +59,7 @@ print "We have", passengers, "to carpool today."
 print "We need to put about", average_passengers_per_car, "in each car."
 ```
 ---
+## printing and variables
 ```python
 my_name = 'Zed A. Shaw'
 my_age = 35 # not a lie
@@ -77,7 +80,6 @@ print "His teeth are usually %s depending on the coffee." % my_teeth
 print "If I add %d, %d, and %d I get %d." % (
     my_age, my_height, my_weight, my_age + my_height + my_weight)
 ```
----
 ```python
 x = "There are %d types of people." % 10
 binary = "binary"
@@ -95,6 +97,7 @@ e = "a string with a right side."
 print w + e
 ```
 ---
+## printing and variables
 ```python
 print "Mary had a little lamb."
 print "Its fleece was white as %s." % 'snow'
@@ -119,6 +122,7 @@ print end1 + end2 + end3 + end4 + end5 + end6,
 print end7 + end8 + end9 + end10 + end11 + end12
 ```
 ---
+## formating text
 ```python
 print "Hello World!"
 print "Hello Again"
@@ -127,13 +131,9 @@ print "This is fun."
 print 'Yay! Printing.'
 print "I'd much rather you 'not'."
 print 'I "said" do not touch this.'
-
-
 ```
----
 ```python
 formatter = "%r %r %r %r"
-
 print formatter % (1, 2, 3, 4)
 print formatter % ("one", "two", "three", "four")
 print formatter % (True, False, False, True)
@@ -145,7 +145,6 @@ print formatter % (
     "So I said goodnight."
 )
 ```
----
 ```python
 # Here's some new strange stuff, remember type it exactly.
 
@@ -163,6 +162,7 @@ Even 4 lines if we want, or 5, or 6.
 """
 ```
 ---
+## input text
 ```python
 print "How old are you?",
 age = raw_input()
@@ -171,27 +171,22 @@ height = raw_input()
 print "How much do you weigh?",
 weight = raw_input()
 
-print "So, you're %r old, %r tall and %r heavy." % (
-    age, height, weight)
+print "So, you're %r old, %r tall and %r heavy." % (age, height, weight)
 ```
----
 ```python
 from sys import argv
 
 script, first, second, third = argv
-
 print "The script is called:", script
 print "Your first variable is:", first
 print "Your second variable is:", second
 print "Your third variable is:", third
 ```
----
 ```python
 from sys import argv
 
 script, user_name = argv
 prompt = '> '
-
 print "Hi %s, I'm the %s script." % (user_name, script)
 print "I'd like to ask you a few questions."
 print "Do you like me %s?" % user_name
@@ -202,7 +197,6 @@ lives = raw_input(prompt)
 
 print "What kind of computer do you have?"
 computer = raw_input(prompt)
-
 print """
 Alright, so you said %r about liking me.
 You live in %r.  Not sure where that is.
@@ -210,112 +204,91 @@ And you have a %r computer.  Nice.
 """ % (likes, lives, computer)
 ```
 ---
+## file
 ```python
 from sys import argv
 
 script, filename = argv
-
 txt = open(filename)
-
 print "Here's your file %r:" % filename
 print txt.read()
-
 print "Type the filename again:"
 file_again = raw_input("> ")
-
 txt_again = open(file_again)
-
 print txt_again.read()
 ```
----
 ```python
 from sys import argv
 
 script, filename = argv
-
 print "We're going to erase %r." % filename
 print "If you don't want that, hit CTRL-C (^C)."
 print "If you do want that, hit RETURN."
-
 raw_input("?")
 
 print "Opening the file..."
 target = open(filename, 'w')
-
 print "Truncating the file.  Goodbye!"
 target.truncate()
-
 print "Now I'm going to ask you for three lines."
-
 line1 = raw_input("line 1: ")
 line2 = raw_input("line 2: ")
 line3 = raw_input("line 3: ")
 
 print "I'm going to write these to the file."
-
 target.write(line1)
 target.write("\n")
 target.write(line2)
 target.write("\n")
 target.write(line3)
 target.write("\n")
-
 print "And finally, we close it."
 target.close()
 ```
 ---
+## argv
 ```python
 from sys import argv
 from os.path import exists
 
 script, from_file, to_file = argv
-
 print "Copying from %s to %s" % (from_file, to_file)
-
 # we could do these two on one line too, how?
 in_file = open(from_file)
 indata = in_file.read()
 
 print "The input file is %d bytes long" % len(indata)
-
 print "Does the output file exist? %r" % exists(to_file)
 print "Ready, hit RETURN to continue, CTRL-C to abort."
 raw_input()
 
 out_file = open(to_file, 'w')
 out_file.write(indata)
-
 print "Alright, all done."
-
 out_file.close()
 in_file.close()
 ```
----
 ```python
 # this one is like your scripts with argv
 def print_two(*args):
     arg1, arg2 = args
     print "arg1: %r, arg2: %r" % (arg1, arg2)
-
 # ok, that *args is actually pointless, we can just do this
 def print_two_again(arg1, arg2):
     print "arg1: %r, arg2: %r" % (arg1, arg2)
-
 # this just takes one argument
 def print_one(arg1):
     print "arg1: %r" % arg1
-
 # this one takes no arguments
 def print_none():
     print "I got nothin'."
-
-
 print_two("Zed","Shaw")
 print_two_again("Zed","Shaw")
 print_one("First!")
 print_none()
 ```
 ---
+## functions
 ```python
 def cheese_and_crackers(cheese_count, boxes_of_crackers):
     print "You have %d cheeses!" % cheese_count
@@ -344,6 +317,7 @@ cheese_and_crackers(amount_of_cheese + 100, amount_of_crackers + 1000)
 
 ```
 ---
+## functions
 ```python
 from sys import argv
 
@@ -380,6 +354,7 @@ current_line = current_line + 1
 print_a_line(current_line, current_file)
 ```
 ---
+## functions
 ```python
 def add(a, b):
     print "ADDING %d + %d" % (a, b)
@@ -416,6 +391,7 @@ what = add(age, subtract(height, multiply(weight, divide(iq, 2))))
 print "That becomes: ", what, "Can you do it by hand?"
 ```
 ---
+## functions
 ```python
 print "Let's practice everything."
 print 'You\'d need to know \'bout escapes with \\ that do \n newlines and \t tabs.'
@@ -456,6 +432,7 @@ print "We can also do that this way:"
 print "We'd have %d beans, %d jars, and %d crates." % secret_formula(start_point)
 ```
 ---
+## python API 1/2
 ```python
 def break_words(stuff):
     """This function will break up words for us."""
@@ -486,22 +463,26 @@ def print_first_and_last_sorted(sentence):
     words = sort_sentence(sentence)
     print_first_word(words)
     print_last_word(words)
-
-# >>> import ex25
-# >>> sentence = "All good things come to those who wait."
-# >>> words = ex25.break_words(sentence)
-# >>> words
-# ['All', 'good', 'things', 'come', 'to', 'those', 'who', 'wait.']
-# >>> sorted_words = ex25.sort_words(words)
-# >>> sorted_words
-# ['All', 'come', 'good', 'things', 'those', 'to', 'wait.', 'who']
-# >>> ex25.print_first_word(words)
-# All
-# >>> ex25.print_last_word(words)
-# wait.
-# >>> wrods
 ```
 ---
+## python API 2/2    
+```python
+ >>> import ex25
+ >>> sentence = "All good things come to those who wait."
+ >>> words = ex25.break_words(sentence)
+ >>> words
+['All', 'good', 'things', 'come', 'to', 'those', 'who', 'wait.']
+>>> sorted_words = ex25.sort_words(words)
+>>> sorted_words
+['All', 'come', 'good', 'things', 'those', 'to', 'wait.', 'who']
+>>> ex25.print_first_word(words)
+All
+>>> ex25.print_last_word(words)
+wait.
+>>> wrods
+```
+---
+##if 
 ```python
 people = 20
 cats = 30
@@ -534,11 +515,11 @@ if people == dogs:
     print "People are dogs."
 ```
 ---
+##elif
 ```python
 people = 30
 cars = 40
 buses = 15
-
 
 if cars > people:
     print "We should take the cars."
@@ -560,6 +541,7 @@ else:
     print "Fine, let's stay home then."
 ```
 ---
+## for and lists
 ```python
 the_count = [1, 2, 3, 4, 5]
 fruits = ['apples', 'oranges', 'pears', 'apricots']
@@ -592,6 +574,7 @@ for i in elements:
     print "Element was: %d" % i
 ```
 ---
+##while
 ```python
 i = 0
 numbers = []
@@ -599,23 +582,19 @@ numbers = []
 while i < 6:
     print "At the top i is %d" % i
     numbers.append(i)
-
     i = i + 1
     print "Numbers now: ", numbers
     print "At the bottom i is %d" % i
-
 
 print "The numbers: "
 
 for num in numbers:
     print num
 ```
----
 ```python
 ten_things = "Apples Oranges Crows Telephone Light Sugar"
 
 print "Wait there's not 10 things in that list, let's fix that."
-
 stuff = ten_things.split(' ')
 more_stuff = ["Day", "Night", "Song", "Frisbee", "Corn", "Banana", "Girl", "Boy"]
 
@@ -626,7 +605,6 @@ while len(stuff) != 10:
     print "There's %d items now." % len(stuff)
 
 print "There we go: ", stuff
-
 print "Let's do some things with stuff."
 
 print stuff[1]
@@ -636,6 +614,7 @@ print ' '.join(stuff) # what? cool!
 print '#'.join(stuff[3:5]) # super stellar!
 ```
 ---
+## dicts or hashs 1/2
 ```python
 # create a mapping of state to abbreviation
 states = {
@@ -671,7 +650,10 @@ print "Florida's abbreviation is: ", states['Florida']
 print '-' * 10
 print "Michigan has: ", cities[states['Michigan']]
 print "Florida has: ", cities[states['Florida']]
-
+```
+---
+## dicts or hashs 2/2
+```python
 # print every state abbreviation
 print '-' * 10
 for state, abbrev in states.items():
@@ -700,6 +682,7 @@ city = cities.get('TX', 'Does Not Exist')
 print "The city for the state 'TX' is: %s" % city
 ```
 ---
+## class
 ```python
 # # dict style
 # mystuff['apples']
@@ -735,6 +718,7 @@ happy_bday.sing_me_a_song()
 bulls_on_parade.sing_me_a_song()
 ```
 ---
+## snippet 1/3
 ```python
 import random
 from urllib import urlopen
@@ -766,8 +750,10 @@ if len(sys.argv) == 2 and sys.argv[1] == "english":
 # load up the words from the website
 for word in urlopen(WORD_URL).readlines():
     WORDS.append(word.strip())
-
-
+```
+---
+## snippet 2/3
+```python
 def convert(snippet, phrase):
     class_names = [w.capitalize() for w in
                    random.sample(WORDS, snippet.count("%%%"))]
@@ -797,8 +783,10 @@ def convert(snippet, phrase):
         results.append(result)
 
     return results
-
-
+```
+---
+## snippet 3/3
+```python
 # keep going until they hit CTRL-D
 try:
     while True:
@@ -819,8 +807,7 @@ except EOFError:
     print "\nBye"
 ```
 ---
-
-
+## class
 ```python
 class Map(object):
 
@@ -846,6 +833,7 @@ class Map(object):
 
 ```
 ---
+## composition or heritage 
 ```python
 class Other(object):
 
@@ -880,7 +868,223 @@ son.implicit()
 son.override()
 son.altered()
 ```
+---
+## making sentence 1/2
+```python
+class ParserError(Exception):
+    pass
 
+class Sentence(object):
+    def __init__(self, subject, verb, object):
+        # remember we take ('noun','princess') tuples and convert them
+        self.subject = subject[1]
+        self.verb = verb[1]
+        self.object = object[1]
+def peek(word_list):
+    if word_list:
+        word = word_list[0]
+        return word[0]
+    else:
+        return None
+def match(word_list, expecting):
+    if word_list:
+        word = word_list.pop(0)
+
+        if word[0] == expecting:
+            return word
+        else:
+            return None
+    else:
+        return None
+def skip(word_list, word_type):
+    while peek(word_list) == word_type:
+        match(word_list, word_type)
+def parse_verb(word_list):
+    skip(word_list, 'stop')
+
+    if peek(word_list) == 'verb':
+        return match(word_list, 'verb')
+    else:
+        raise ParserError("Expected a verb next.")
+```
+---
+## making sentence 2/2
+```python
+def parse_object(word_list):
+    skip(word_list, 'stop')
+    next = peek(word_list)
+    if next == 'noun':
+        return match(word_list, 'noun')
+    if next == 'direction':
+        return match(word_list, 'direction')
+    else:
+        raise ParserError("Expected a noun or direction next.")
+def parse_subject(word_list, subj):
+    verb = parse_verb(word_list)
+    obj = parse_object(word_list)
+    return Sentence(subj, verb, obj)
+def parse_sentence(word_list):
+    skip(word_list, 'stop')
+    start = peek(word_list)
+    if start == 'noun':
+        subj = match(word_list, 'noun')
+        return parse_subject(word_list, subj)
+    elif start == 'verb':
+        # assume the subject is the player then
+        return parse_subject(word_list, ('noun', 'player'))
+    else:
+        raise ParserError("Must start with subject, object, or verb not: %s" % start)
+
+```
+---
+## website using lpthw.web
+```bash
+sudo pip install lpthw.web
+```
+```html
+$def with (greeting)
+
+<html>
+    <head>
+        <title>Gothons Of Planet Percal #25</title>
+    </head>
+<body>
+$if greeting:
+    I just wanted to say <em style="color: green; font-size: 2em;">$greeting</em>.
+$else:
+    <em>Hello</em>, world!
+</body>
+</html>
+```
+```python
+import web
+urls = (
+  '/', 'Index'
+)
+app = web.application(urls, globals())
+render = web.template.render('templates/')
+
+class Index(object):
+    def GET(self):
+        greeting = "Hello World"
+        return render.index(greeting = greeting)
+
+if __name__ == "__main__":
+    app.run()
+```
+---
+## website with autotests 1/4
+```html
+<html>
+    <head>
+        <title>Sample Web Form</title>
+    </head>
+<body>
+<h1>Fill Out This Form</h1>
+<form action="/hello" method="POST">
+    A Greeting: <input type="text" name="greet">
+    <br/>
+    Your Name: <input type="text" name="name">
+    <br/>
+    <input type="submit">
+</form>
+</body>
+</html>
+```
+```python
+from nose.tools import *
+import re
+
+def assert_response(resp, contains=None, matches=None, headers=None, status="200"):
+
+    assert status in resp.status, "Expected response %r not in %r" % (status, resp.status)
+
+    if status == "200":
+        assert resp.data, "Response data is empty."
+
+    if contains:
+        assert contains in resp.data, "Response does not contain %r" % contains
+
+    if matches:
+        reg = re.compile(matches)
+        assert reg.matches(resp.data), "Response does not match %r" % matches
+
+    if headers:
+        assert_equal(resp.headers, headers)
+```
+---
+## website with autotests 2/4
+```python
+from nose.tools import *
+from bin.app import app
+from tests.tools import assert_response
+
+def test_index():
+    # check that we get a 404 on the / URL
+    resp = app.request("/")
+    assert_response(resp, status="404")
+
+    # test our first GET request to /hello
+    resp = app.request("/hello")
+    assert_response(resp)
+
+    # make sure default values work for the form
+    resp = app.request("/hello", method="POST")
+    assert_response(resp, contains="Nobody")
+
+    # test that we get expected values
+    data = {'name': 'Zed', 'greet': 'Hola'}
+    resp = app.request("/hello", method="POST", data=data)
+    assert_response(resp, contains="Zed")
+```
+---
+## website with autotests 3/4
+```python
+import web
+
+urls = (
+  '/hello', 'Index'
+)
+
+app = web.application(urls, globals())
+render = web.template.render('templates/', base="layout")
+
+class Index(object):
+    def GET(self):
+        return render.hello_form()
+
+    def POST(self):
+        form = web.input(name="Nobody", greet="Hello")
+        greeting = "%s, %s" % (form.greet, form.name)
+        return render.index(greeting = greeting)
+
+if __name__ == "__main__":
+    app.run()
+```
+---
+## website with autotests 4/4
+```html
+$def with (greeting)
+$if greeting:
+    I just wanted to say <em style="color: green; font-size: 2em;">$greeting</em>.
+$else:
+    <em>Hello</em>, world!
+```
+```html
+<h1>Fill Out This Form</h1>
+<form action="/hello" method="POST">
+    A Greeting: <input type="text" name="greet"><br/>
+    Your Name: <input type="text" name="name"><br/>
+    <input type="submit">
+</form>
+```
+```html
+$def with (content)
+<html><head><title>Gothons From Planet Percal #25</title></head>
+<body>
+$:content
+</body></html>
+```
     </textarea>
     <script src="js/remark-latest.min.js" type="text/javascript">
     </script>

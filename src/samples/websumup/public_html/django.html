@@ -31,7 +31,7 @@ grant all privileges on *.* to 'mydbuser'@'localhost" with grant option;
 ```
 ## setup django
 ```bash
-sudo apt-get install python-django python-mysqldb
+sudo apt-get install python-django python-mysqldb python-pip
 #scaffold myproj
 django-admin startproject myproj
 cd myproj
@@ -41,7 +41,6 @@ python manage.py syncdb
 python manage.py startapp myapp
 # patch INSTALLED_APPS
 vim myproj/settings.py
-
 ```
 
 
