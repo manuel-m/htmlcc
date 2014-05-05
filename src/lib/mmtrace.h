@@ -6,39 +6,29 @@
 extern "C" {
 #endif
     
-#define MM_TRACE_LEVEL_ERR  0
-#define MM_TRACE_LEVEL_WARN 1
-#define MM_TRACE_LEVEL_INFO 2
-    
-  
+#include <stdlib.h>
+#include <stdio.h>
+#include <errno.h>
+        
+#ifdef NDEBUG
+#define debug(M, ...)
+#else
+#define debug(M, ...) fprintf(stderr, "DEBUG %s:%d: " M "\n", __FILE__, __LINE__, ##__VA_ARGS__)
+#endif        
+   
 
-#define MM_ASSERT(COND)                                     \
-do {                                                        \
- if(!(COND)){                                               \
-     mmtrace(MM_TRACE_LEVEL_ERR,                            \
-              __FILE__,                                     \
-              __LINE__,                                     \
-              #COND);                                       \
-      exit(1);                                              \
-    }                                                       \
-} while(0) 
-    
-#define MM_INFO(b...) mmtrace(MM_TRACE_LEVEL_INFO, __FILE__, __LINE__, b)    
-#define MM_WARN(b...) mmtrace(MM_TRACE_LEVEL_WARN, __FILE__, __LINE__, b)    
-
-#define MM_ERR(b...)                                                           \
-do{                                                                            \
-    mmtrace(MM_TRACE_LEVEL_ERR, __FILE__, __LINE__, b);                        \
-}while(0);    
-
-#define MM_GERR(b...)                                                          \
-do{                                                                            \
-    mmtrace(MM_TRACE_LEVEL_ERR, __FILE__, __LINE__, b);                        \
-    goto err;                                                                  \
-}while(0);
-    
-void mmtrace_level(int level_);
-void mmtrace(int level_, const char *file_, int line_, const char *format_, ...);
+#define clean_errno() (errno == 0 ? "None" : strerror(errno))
+#define log_err(M, ...) fprintf(stderr, "[ ERR] (%s:%d: errno: %s) " M "\n", __FILE__, __LINE__, clean_errno(), ##__VA_ARGS__)
+#define log_warn(M, ...) fprintf(stderr, "[WARN] (%s:%d: errno: %s) " M "\n", __FILE__, __LINE__, clean_errno(), ##__VA_ARGS__)
+#ifdef NDEBUG    
+#  define log_info(M, ...) fprintf(stderr, "[INFO] " M "\n", ##__VA_ARGS__)        
+#else
+#  define log_info(M, ...) fprintf(stderr, "[INFO] (%s:%d) " M "\n", __FILE__, __LINE__, ##__VA_ARGS__)
+#endif    
+#define log_gerr(M, ...)  { log_err(M, ##__VA_ARGS__); errno=0; goto err; }
+#define die(M, ...)  { log_err(M, ##__VA_ARGS__); exit(1); }
+#define die_internal(M, ...)  { log_err("internal", ##__VA_ARGS__); exit(1); }
+#define check_mem(A) check((A), "Out of memory.")
 
 
 

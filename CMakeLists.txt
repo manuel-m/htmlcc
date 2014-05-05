@@ -41,7 +41,6 @@ include_directories (src ${GEN_DIR} src/lib src/lib/bagride2)
 
 add_library(${LIBHC_A} 
             src/lib/http_parser.c
-            src/lib/mmtrace.c 
             src/lib/strcompat.c 
             src/lib/mmpool.c 
             src/lib/sub0.c

@@ -36,13 +36,13 @@ static const br_http_type_item_t http_hrsr_items[] = {
 
 static void on_http_close(uv_handle_t* handle_) {
     br_http_cli_t* cli = (br_http_cli_t*) handle_->data;
-    MM_INFO("(%5d) connection closed ", cli->m_request_num);
+    log_info("(%5d) connection closed ", cli->m_request_num);
     free(cli->m_resbuf.base);
     free(cli);
 }
 
 static void on_http_after_write(uv_write_t* req_, int status_) {
-    MM_ASSERT(status_ >= 0);
+    if(0 > status_) die("http write");
     uv_close((uv_handle_t*) req_->handle, on_http_close);
 }
 
@@ -51,8 +51,8 @@ static int on_body(http_parser *parser_, const char *p_, size_t sz_) {
     char buf[2048];
     memcpy(buf, p_, (sz_ < (sizeof (buf))) ? sz_ : (sizeof (buf) - 1));
     buf[sz_] = '\0';
-    MM_INFO("(%5d) body_size,%d ", cli->m_request_num, sz_);
-    MM_INFO("(%5d) body,%s ", cli->m_request_num, buf);
+    log_info("(%5d) body_size,%zu ", cli->m_request_num, sz_);
+    log_info("(%5d) body,%s ", cli->m_request_num, buf);
     return 0;
 }
 
@@ -63,7 +63,7 @@ static int on_body(http_parser *parser_, const char *p_, size_t sz_) {
 static int request_url_cb(http_parser *p_, const char *buf_, size_t sz_) {
     BR_HTTP_GET_m
     strlncat(m->request_url, sizeof (m->request_url), buf_, sz_);
-    MM_INFO("(%5d) %s", cli->m_request_num, cli->pub.m_mess.request_url);
+    log_info("(%5d) %s", cli->m_request_num, cli->pub.m_mess.request_url);
     return 0;
 }
 
@@ -106,7 +106,7 @@ static int br_http_route_static(br_http_cli_t* c_, const char* url_) {
     const br_http_srv_t* srv = c_->m_srv;
 
     if (MAP_OK != (hashmap_get(srv->m_static_resources, url_, (void**) (&rsr)))) {
-        MM_INFO("(%5d) no matching static resource:%s", c_->m_request_num, url_);
+        log_info("(%5d) no matching static resource:%s", c_->m_request_num, url_);
         return -1;
     }
 
@@ -119,13 +119,13 @@ static int br_http_route_static(br_http_cli_t* c_, const char* url_) {
 
     if (suffix) {
         if (MAP_OK != (hashmap_get(srv->m_types, suffix, (void**) (&type)))) {
-            MM_INFO("(%5d) invalid requested type:%s", c_->m_request_num, url_);
+            log_info("(%5d) invalid requested type:%s", c_->m_request_num, url_);
         }
     }
     /* fallback ... no type detected ... => html */
     if (NULL == type) hashmap_get(srv->m_types, "html", (void**) (&type));
 
-    MM_INFO("(%5d) response type:%s %s", c_->m_request_num, type->id, type->response_type);
+    log_info("(%5d) response type:%s %s", c_->m_request_num, type->id, type->response_type);
 
     char* header_value = NULL;
     size_t header_value_sz = 0;
@@ -176,7 +176,7 @@ end:
 
 static int message_complete_cb(http_parser* p_) {
     BR_HTTP_GET_m
-    MM_INFO("(%5d) http_message_complete", cli->m_request_num);
+    log_info("(%5d) http_message_complete", cli->m_request_num);
    
     on_stats_response(cli);
 
@@ -208,7 +208,7 @@ static void on_http_read(uv_stream_t* handle_, ssize_t nread_, const uv_buf_t* b
                 &cli->m_parser, &srv->m_parser_settings, buf_->base, (size_t) nread_);
 
         if (parsed < (size_t) nread_) {
-            MM_ERR("parse error");
+            log_err("parse error");
             uv_close((uv_handle_t*) handle_, on_http_close);
         }
 
@@ -219,7 +219,7 @@ static void on_http_read(uv_stream_t* handle_, ssize_t nread_, const uv_buf_t* b
 }
 
 static void on_http_connect(uv_stream_t* handle_, int status_) {
-    MM_ASSERT(status_ >= 0);
+    if(0 > status_) die("http connect");
     br_http_srv_t* server = (br_http_srv_t*) handle_->data;
 
     ++(server->m_request_num);
@@ -228,7 +228,7 @@ static void on_http_connect(uv_stream_t* handle_, int status_) {
     cli->m_request_num = server->m_request_num;
     cli->m_srv = server;
 
-    MM_INFO("(%5d) connection new %p", cli->m_request_num, handle_);
+    log_info("(%5d) connection new %p", cli->m_request_num, handle_);
 
     uv_tcp_init(uv_default_loop(), &cli->m_handle);
     http_parser_init(&cli->m_parser, HTTP_REQUEST);
@@ -240,7 +240,7 @@ static void on_http_connect(uv_stream_t* handle_, int status_) {
     if (0 == r) {
         uv_read_start((uv_stream_t*) & cli->m_handle, on_alloc_buffer, on_http_read);
     } else {
-        MM_ERR("connect:%s", uv_strerror(r));
+        log_err("connect:%s", uv_strerror(r));
         uv_close((uv_handle_t*) & cli->m_handle, on_http_close);
     }
 }
@@ -263,14 +263,14 @@ int br_http_srv_init(br_http_srv_t* srv_, const br_http_srv_spec_t* spec_) {
 
     srv_->m_port = spec_->m_port;
     srv_->m_rsr_404 = spec_->m_rsr_404;
-    MM_INFO("(%5d) http %ld", srv_->m_port);
+    log_info("(%5d) http %d", srv_->m_request_num, srv_->m_port);
     uv_tcp_init(uv_default_loop(), &srv_->m_handler);
     srv_->m_handler.data = srv_;
-    MM_ASSERT(0 == uv_ip4_addr("0.0.0.0", srv_->m_port, &srv_->m_addr));
-    MM_ASSERT(0 == uv_tcp_bind(&srv_->m_handler, (const struct sockaddr*) &srv_->m_addr));
-    MM_ASSERT(0 == uv_listen((uv_stream_t*) & srv_->m_handler, BR_MAX_CONNECTIONS, on_http_connect));
+    if(0 != uv_ip4_addr("0.0.0.0", srv_->m_port, &srv_->m_addr))die_internal();
+    if(0 != uv_tcp_bind(&srv_->m_handler, (const struct sockaddr*) &srv_->m_addr))die_internal();
+    if(0 != uv_listen((uv_stream_t*) & srv_->m_handler, BR_MAX_CONNECTIONS, on_http_connect))die_internal();
 
-    if (NULL == spec_->m_rsr_404) MM_GERR("missing 404 definition");
+    if (NULL == spec_->m_rsr_404) log_gerr("missing 404 definition");
 
     /* file type handling ... static list for now */
     {
@@ -281,7 +281,7 @@ int br_http_srv_init(br_http_srv_t* srv_, const br_http_srv_spec_t* spec_) {
         for (i = 0; i < sz; i++) {
             const br_http_type_item_t* p = &http_hrsr_items[i];
             if (MAP_OK != hashmap_put(srv_->m_types, p->id, (any_t) p))
-                MM_GERR("resource add: %s %s", p->id, p->response_type);
+                log_gerr("resource add: %s %s", p->id, p->response_type);
         }
     }
 
@@ -291,7 +291,7 @@ int br_http_srv_init(br_http_srv_t* srv_, const br_http_srv_spec_t* spec_) {
         size_t i;
         for (i = 0; i < spec_->m_static_resources->m_sz; i++) {
             const rsr_t* prsr = spec_->m_static_resources->m_array[i];
-            MM_INFO("adding %s (%zu)", prsr->m_key, prsr->m_sz);
+            log_info("adding %s (%zu)", prsr->m_key, prsr->m_sz);
             if (0 > br_http_srv_static_rsr_add(srv_, prsr)) goto err;
         }
 
@@ -316,16 +316,16 @@ err:
 int br_http_srv_static_rsr_add(br_http_srv_t* srv_, const rsr_t* rsr_) {
 
     const char* suffix = sub0_path_suffix(rsr_->m_key);
-    if (NULL == suffix) MM_GERR("static resource without suffix %s", rsr_->m_key);
+    if (NULL == suffix) log_gerr("static resource without suffix %s", rsr_->m_key);
 
     /* check if type is handled */
     br_http_type_item_t* type = NULL;
     if (MAP_OK != (hashmap_get(srv_->m_types, suffix, (void**) (&type))))
-        MM_GERR("static resource not handled (suffix) %s (%s)", rsr_->m_key);
+        log_gerr("static resource not handled (suffix) (%s)", rsr_->m_key);
 
 
     if (MAP_OK != hashmap_put(srv_->m_static_resources, rsr_->m_key, (any_t) rsr_))
-        MM_GERR("resource add: %s", rsr_->m_key);
+        log_gerr("resource add: %s", rsr_->m_key);
     return 0;
 
 err:
