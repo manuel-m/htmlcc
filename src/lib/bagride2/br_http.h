@@ -91,6 +91,7 @@ extern "C" {
     } br_http_srv_spec_t;
 
     int br_http_srv_init(br_http_srv_t* srv_, const br_http_srv_spec_t* spec_);
+    int br_http_srv_listen(br_http_srv_t* srv_);
     int br_http_srv_static_rsr_add(br_http_srv_t* srv_, const rsr_t* rsr_);
    
 

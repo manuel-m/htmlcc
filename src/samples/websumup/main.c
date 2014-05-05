@@ -25,7 +25,8 @@ int main(int argc, char **argv) {
         .m_rsr_404 = rsr_404
     };
 
-    if (0 > br_http_srv_init(&srv, &http_srv_spec)) goto err;
+    if (0 > br_http_srv_init(&srv, &http_srv_spec)) log_gerr("server init");
+    if (0 > br_http_srv_listen(&srv)) log_gerr("server activate");
 
     br_run();
 

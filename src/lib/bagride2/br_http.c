@@ -245,6 +245,18 @@ static void on_http_connect(uv_stream_t* handle_, int status_) {
     }
 }
 
+int br_http_srv_listen(br_http_srv_t* srv_) {
+    
+    log_info("(%5d) http %d", srv_->m_request_num, srv_->m_port);
+    uv_tcp_init(uv_default_loop(), &srv_->m_handler);
+    srv_->m_handler.data = srv_;
+    if(0 != uv_ip4_addr("0.0.0.0", srv_->m_port, &srv_->m_addr))die_internal();
+    if(0 != uv_tcp_bind(&srv_->m_handler, (const struct sockaddr*) &srv_->m_addr))die_internal();
+    if(0 != uv_listen((uv_stream_t*) & srv_->m_handler, BR_MAX_CONNECTIONS, on_http_connect))die_internal();    
+    
+    return 0;
+}
+
 int br_http_srv_init(br_http_srv_t* srv_, const br_http_srv_spec_t* spec_) {
 
     int res = 0;
@@ -263,12 +275,12 @@ int br_http_srv_init(br_http_srv_t* srv_, const br_http_srv_spec_t* spec_) {
 
     srv_->m_port = spec_->m_port;
     srv_->m_rsr_404 = spec_->m_rsr_404;
-    log_info("(%5d) http %d", srv_->m_request_num, srv_->m_port);
-    uv_tcp_init(uv_default_loop(), &srv_->m_handler);
-    srv_->m_handler.data = srv_;
-    if(0 != uv_ip4_addr("0.0.0.0", srv_->m_port, &srv_->m_addr))die_internal();
-    if(0 != uv_tcp_bind(&srv_->m_handler, (const struct sockaddr*) &srv_->m_addr))die_internal();
-    if(0 != uv_listen((uv_stream_t*) & srv_->m_handler, BR_MAX_CONNECTIONS, on_http_connect))die_internal();
+//    log_info("(%5d) http %d", srv_->m_request_num, srv_->m_port);
+//    uv_tcp_init(uv_default_loop(), &srv_->m_handler);
+//    srv_->m_handler.data = srv_;
+//    if(0 != uv_ip4_addr("0.0.0.0", srv_->m_port, &srv_->m_addr))die_internal();
+//    if(0 != uv_tcp_bind(&srv_->m_handler, (const struct sockaddr*) &srv_->m_addr))die_internal();
+//    if(0 != uv_listen((uv_stream_t*) & srv_->m_handler, BR_MAX_CONNECTIONS, on_http_connect))die_internal();
 
     if (NULL == spec_->m_rsr_404) log_gerr("missing 404 definition");
 
