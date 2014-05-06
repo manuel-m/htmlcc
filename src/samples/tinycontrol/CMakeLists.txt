@@ -14,3 +14,7 @@ add_custom_target(gen_tinycontrol
 add_executable (${TINYCONTROL} main.c)
 target_link_libraries (${TINYCONTROL} ${LIBHC_A} ${UV_A} -lpthread)
 add_dependencies(${TINYCONTROL} gen_tinycontrol)
+
+add_executable (test_${TINYCONTROL} test_main.c)
+target_link_libraries (test_${TINYCONTROL} ${LIBHC_A} ${UV_A} -lpthread)
+add_dependencies(test_${TINYCONTROL} gen_tinycontrol)

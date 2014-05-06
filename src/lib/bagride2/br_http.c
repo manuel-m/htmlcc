@@ -42,7 +42,7 @@ static void on_http_close(uv_handle_t* handle_) {
 }
 
 static void on_http_after_write(uv_write_t* req_, int status_) {
-    if(0 > status_) die("http write");
+    if (0 > status_) die("http write");
     uv_close((uv_handle_t*) req_->handle, on_http_close);
 }
 
@@ -177,7 +177,7 @@ end:
 static int message_complete_cb(http_parser* p_) {
     BR_HTTP_GET_m
     log_info("(%5d) http_message_complete", cli->m_request_num);
-   
+
     on_stats_response(cli);
 
     uv_write(
@@ -188,6 +188,17 @@ static int message_complete_cb(http_parser* p_) {
             on_http_after_write);
 
     m->message_complete_cb_called = 1;
+    return 0;
+}
+
+static int message_complete_test_cb(http_parser* p_) {
+    BR_HTTP_GET_m
+    on_stats_response(cli);
+
+    m->message_complete_cb_called = 1;
+    
+    log_info("(%5d) message_complete_test_cb %p", cli->m_request_num,m);
+    
     return 0;
 }
 
@@ -218,23 +229,27 @@ static void on_http_read(uv_stream_t* handle_, ssize_t nread_, const uv_buf_t* b
     free(buf_->base);
 }
 
+// PRIVATE
+
+static void br_http_srv_client_init(br_http_srv_t* srv_, br_http_cli_t* cli_) {
+    cli_->m_request_num = srv_->m_request_num;
+    cli_->m_srv = srv_;
+    cli_->m_parser.data = cli_;
+    cli_->m_handle.data = cli_;
+    http_parser_init(&cli_->m_parser, HTTP_REQUEST);
+}
+
 static void on_http_connect(uv_stream_t* handle_, int status_) {
-    if(0 > status_) die("http connect");
+    if (0 > status_) die("http connect");
     br_http_srv_t* server = (br_http_srv_t*) handle_->data;
 
     ++(server->m_request_num);
 
     br_http_cli_t* cli = calloc(1, sizeof (br_http_cli_t));
-    cli->m_request_num = server->m_request_num;
-    cli->m_srv = server;
+    br_http_srv_client_init(server, cli);
 
     log_info("(%5d) connection new %p", cli->m_request_num, handle_);
-
     uv_tcp_init(uv_default_loop(), &cli->m_handle);
-    http_parser_init(&cli->m_parser, HTTP_REQUEST);
-
-    cli->m_parser.data = cli;
-    cli->m_handle.data = cli;
 
     int r = uv_accept(handle_, (uv_stream_t*) & cli->m_handle);
     if (0 == r) {
@@ -246,14 +261,18 @@ static void on_http_connect(uv_stream_t* handle_, int status_) {
 }
 
 int br_http_srv_listen(br_http_srv_t* srv_) {
-    
+
     log_info("(%5d) http %d", srv_->m_request_num, srv_->m_port);
+
+    // we really listen here (by default test callback is enabled)
+    srv_->m_parser_settings.on_message_complete = message_complete_cb;
+
     uv_tcp_init(uv_default_loop(), &srv_->m_handler);
     srv_->m_handler.data = srv_;
-    if(0 != uv_ip4_addr("0.0.0.0", srv_->m_port, &srv_->m_addr))die_internal();
-    if(0 != uv_tcp_bind(&srv_->m_handler, (const struct sockaddr*) &srv_->m_addr))die_internal();
-    if(0 != uv_listen((uv_stream_t*) & srv_->m_handler, BR_MAX_CONNECTIONS, on_http_connect))die_internal();    
-    
+    if (0 != uv_ip4_addr("0.0.0.0", srv_->m_port, &srv_->m_addr))die_internal();
+    if (0 != uv_tcp_bind(&srv_->m_handler, (const struct sockaddr*) &srv_->m_addr))die_internal();
+    if (0 != uv_listen((uv_stream_t*) & srv_->m_handler, BR_MAX_CONNECTIONS, on_http_connect))die_internal();
+
     return 0;
 }
 
@@ -269,18 +288,13 @@ int br_http_srv_init(br_http_srv_t* srv_, const br_http_srv_spec_t* spec_) {
     settings->on_status = response_status_cb;
 
     settings->on_headers_complete = on_headers_complete;
-    settings->on_message_complete = message_complete_cb;
+    settings->on_message_complete = message_complete_test_cb;
+
 
     settings->on_body = on_body;
 
     srv_->m_port = spec_->m_port;
     srv_->m_rsr_404 = spec_->m_rsr_404;
-//    log_info("(%5d) http %d", srv_->m_request_num, srv_->m_port);
-//    uv_tcp_init(uv_default_loop(), &srv_->m_handler);
-//    srv_->m_handler.data = srv_;
-//    if(0 != uv_ip4_addr("0.0.0.0", srv_->m_port, &srv_->m_addr))die_internal();
-//    if(0 != uv_tcp_bind(&srv_->m_handler, (const struct sockaddr*) &srv_->m_addr))die_internal();
-//    if(0 != uv_listen((uv_stream_t*) & srv_->m_handler, BR_MAX_CONNECTIONS, on_http_connect))die_internal();
 
     if (NULL == spec_->m_rsr_404) log_gerr("missing 404 definition");
 
@@ -344,7 +358,45 @@ err:
     return -1;
 }
 
+int br_http_srv_test_response(br_http_srv_t* srv_, char* url_, char** resp_) {
 
+    int res = 0;
+    br_http_cli_t pseudo_cli;
+    memset(&pseudo_cli, 0, sizeof pseudo_cli);
+    br_http_srv_client_init(srv_, &pseudo_cli);
+
+    uv_buf_t in_buf;
+    in_buf.len = asprintf(&in_buf.base, "GET %s HTTP/1.1\r\n\r\n", url_);
+
+    size_t parsed;
+
+    if (0 == in_buf.len) log_gerr("input");
+    parsed = http_parser_execute(&pseudo_cli.m_parser, &srv_->m_parser_settings,
+            in_buf.base, (size_t) in_buf.len);
+
+    log_info("request len: %zu, parsed :%zu", in_buf.len, parsed);
+
+    if (parsed < (size_t) in_buf.len) log_gerr("invalid parse");
+    if (0 == pseudo_cli.pub.m_mess.message_complete_cb_called) 
+        log_gerr("invalid parse, %p", &pseudo_cli.pub.m_mess);
+
+    *resp_ = malloc(pseudo_cli.m_resbuf.len + 1);
+    memcpy((*resp_), pseudo_cli.m_resbuf.base, pseudo_cli.m_resbuf.len);
+    (*resp_)[pseudo_cli.m_resbuf.len] = '\0';
+
+    if (pseudo_cli.m_resbuf.base)free(pseudo_cli.m_resbuf.base);
+
+    log_info("response len: %zu", pseudo_cli.m_resbuf.len);
+    
+
+end:
+    if (in_buf.base)free(in_buf.base);
+    return res;
+err:
+    res = -1;
+    *resp_ = NULL;
+    goto end;
+}
 
 
 
