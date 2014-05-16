@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>25-mai-2014</title>
+    <title>jquery</title>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
     <link rel="stylesheet" type="text/css" href="css/ds.css" />
     <link rel="stylesheet" type="text/css" href="css/yk.css" />
@@ -278,6 +278,47 @@ Handlebars.registerHelper('fullName', function( author) {
     };
     window.Twitter = Twitter.init();
 })(jQuery);
+```
+---
+#deferred
+```javascript
+var myVar;
+
+var setVal = function(){
+    var dfd = $.Deferred();
+
+    setTimeout(function(){
+        myVar = 'my val';
+        dfd.resolve();
+    }, 2000);
+    return deferred.promise();
+};
+
+setVal().then(
+    function(){
+        // myVar is ready and ok
+        console.log("done ok");
+    },
+    function(){
+        // myVar is ready and KO
+        console.log("failed");
+    }
+);
+```
+---
+#$.when
+```javascript
+function getTweets( search ){
+    return $.ajax({
+        url: 'ookokkoko',
+        data: { q: search },
+        dataType: 'jsonp'
+    });
+    $.when ( getTweets('dogs'), getTweets('cats')).done(function(results1,results2)){
+        console.log(results1);
+        console.log(results2)
+    }
+}
 ```
 
     </textarea>
